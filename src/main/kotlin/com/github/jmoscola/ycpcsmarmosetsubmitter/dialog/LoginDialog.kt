@@ -13,7 +13,7 @@ class LoginDialog(private val project: Project) : DialogWrapper(project) {
     private val passwordField = JPasswordField()
 
     init {
-        title = SubmitterBundle.message("login.title")
+        title = SubmitterBundle.message("loginDialog.title")
 
         // Load saved credentials from persistent storage
         val loginService = LoginCredentialsService(project)
@@ -44,9 +44,9 @@ class LoginDialog(private val project: Project) : DialogWrapper(project) {
     override fun createCenterPanel(): JComponent {
         val panel = JPanel()
         panel.layout = BoxLayout(panel, BoxLayout.Y_AXIS)
-        panel.add(JLabel(SubmitterBundle.message("login.username")))
+        panel.add(JLabel(SubmitterBundle.message("loginDialog.username")))
         panel.add(usernameField)
-        panel.add(JLabel(SubmitterBundle.message("login.password")))
+        panel.add(JLabel(SubmitterBundle.message("loginDialog.password")))
         panel.add(passwordField)
         return panel
     }

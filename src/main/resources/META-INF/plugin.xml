@@ -16,16 +16,13 @@
     </extensions>
 
     <actions>
-        <action
-                id="org.example.yourplugin.LoginAction"
-                class="com.github.jmoscola.ycpcsmarmosetsubmitter.actions.LoginAction"
+        <action id="com.github.jmoscola.ycpcsmarmosetsubmitter.actions.SubmitAction"
+                class="com.github.jmoscola.ycpcsmarmosetsubmitter.actions.SubmitAction"
                 text="Submit to Marmoset"
                 description="Submit assignment to Marmoset"
                 icon="/icons/ycpcs_marmoset_submitter.svg">
             <add-to-group group-id="MainToolbarRight" anchor="last"/>
             <add-to-group group-id="ToolsMenu" anchor="last"/>
-            <!-- the following adds to the right click menu, when right-clicking in editor window -->
-            <!-- <add-to-group group-id="EditorPopupMenu" anchor="last"/> -->
         </action>
     </actions>
 </idea-plugin>
