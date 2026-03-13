@@ -1,9 +1,10 @@
 package com.github.jmoscola.ycpcsmarmosetsubmitter.dialog
 
 import com.github.jmoscola.ycpcsmarmosetsubmitter.SubmitterBundle
-import com.github.jmoscola.ycpcsmarmosetsubmitter.settings.LoginSettingsState
+import com.github.jmoscola.ycpcsmarmosetsubmitter.services.LoginCredentialsService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper
+import java.awt.Dimension
 import javax.swing.*
 
 class LoginDialog(private val project: Project) : DialogWrapper(project) {
@@ -15,11 +16,23 @@ class LoginDialog(private val project: Project) : DialogWrapper(project) {
         title = SubmitterBundle.message("login.title")
 
         // Load saved credentials from persistent storage
-        val state = LoginSettingsState.getInstance(project)
-        usernameField.text = state.username
-        passwordField.text = state.password
+        val loginService = LoginCredentialsService(project)
+        usernameField.text = loginService.getUsername()
+        passwordField.text = loginService.getPassword() ?: ""
 
         init() // Required by DialogWrapper
+
+        // Make dialog 1.5x wider than the default width and fixed size
+        val defaultSize = contentPanel.preferredSize
+        val fixedWidth = (defaultSize.width * 1.5).toInt()
+        val fixedHeight = defaultSize.height
+
+        (window as? JDialog)?.let { dialog ->
+            dialog.setSize(fixedWidth, fixedHeight)
+            dialog.minimumSize = Dimension(fixedWidth, fixedHeight)
+            dialog.maximumSize = Dimension(fixedWidth, fixedHeight)
+            dialog.isResizable = false
+        }
     }
 
     val username: String
