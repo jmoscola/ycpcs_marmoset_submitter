@@ -4,12 +4,28 @@
     <name>ycpcs_marmoset_submitter</name>
     <vendor>jmoscola</vendor>
 
+    <description>
+        Plugin for submitting assignments to YCPCS Marmoset.
+    </description>
+
     <depends>com.intellij.modules.platform</depends>
 
-    <resource-bundle>messages.MyBundle</resource-bundle>
+    <resource-bundle>messages.SubmitterBundle</resource-bundle>
 
     <extensions defaultExtensionNs="com.intellij">
-        <toolWindow factoryClass="com.github.jmoscola.ycpcsmarmosetsubmitter.toolWindow.MyToolWindowFactory" id="MyToolWindow"/>
-        <postStartupActivity implementation="com.github.jmoscola.ycpcsmarmosetsubmitter.startup.MyProjectActivity" />
     </extensions>
+
+    <actions>
+        <action
+                id="org.example.yourplugin.LoginAction"
+                class="com.github.jmoscola.ycpcsmarmosetsubmitter.actions.LoginAction"
+                text="Submit to Marmoset"
+                description="Submit assignment to Marmoset"
+                icon="/icons/ycpcs_marmoset_submitter.svg">
+            <add-to-group group-id="MainToolbarRight" anchor="last"/>
+            <add-to-group group-id="ToolsMenu" anchor="last"/>
+            <!-- the following adds to the right click menu, when right-clicking in editor window -->
+            <!-- <add-to-group group-id="EditorPopupMenu" anchor="last"/> -->
+        </action>
+    </actions>
 </idea-plugin>
