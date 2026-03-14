@@ -6,7 +6,8 @@ import java.io.File
 data class AssignmentInfo(
     val courseName: String,
     val term: String,
-    val projectNumber: String
+    val projectNumber: String,
+    val semester: String
 )
 
 class CMakeAssignmentInfoService(private val project: Project) {
@@ -42,7 +43,8 @@ class CMakeAssignmentInfoService(private val project: Project) {
         return AssignmentInfo(
             courseName    = properties["COURSE_NAME"]    ?: error("Missing COURSE_NAME in $filename"),
             term          = properties["TERM"]           ?: error("Missing TERM in $filename"),
-            projectNumber = properties["PROJECT_NUMBER"] ?: error("Missing PROJECT_NUMBER in $filename")
+            projectNumber = properties["PROJECT_NUMBER"] ?: error("Missing PROJECT_NUMBER in $filename"),
+            semester      = "${properties["TERM"]} ${java.time.Year.now()}"
         )
     }
 }

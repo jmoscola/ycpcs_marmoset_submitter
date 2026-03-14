@@ -27,19 +27,13 @@ class SubmitAction : AnAction(SubmitterBundle.message("submitAction.text")) {
         val cmakeService = CMakeAssignmentInfoService(project)
         try {
             assignmentInfo = cmakeService.parse("CMakeLists.assignment_info.txt")
-            val semester = "${assignmentInfo.term} ${java.time.Year.now()}"
-
-            Messages.showInfoMessage(
-                project,
-                "COURSE_NAME: ${assignmentInfo.courseName} \nTERM: ${assignmentInfo.term} \nSEMESTER: $semester \nPROJECT_NUM: ${assignmentInfo.projectNumber}",
-                "Assignment Info"
-            )
+//            Messages.showInfoMessage(
+//                project,
+//                "COURSE_NAME: ${assignmentInfo.courseName} \nTERM: ${assignmentInfo.term} \nSEMESTER: ${assignmentInfo.semester} \nPROJECT_NUM: ${assignmentInfo.projectNumber}",
+//                "Assignment Info"
+//            )
         } catch (e: IllegalStateException) {
-            Messages.showErrorDialog(
-                project,
-                "${e.message}",
-                "Submission Failed"
-            )
+            Messages.showErrorDialog(project, "${e.message}", "Submission Failed")
             throw e
         }
 
@@ -64,12 +58,12 @@ class SubmitAction : AnAction(SubmitterBundle.message("submitAction.text")) {
             throw e
         }
 
-        // remove this later
-        Messages.showInfoMessage(
-            project,
-            "Created zip file:\n${zipFile.absolutePath}",
-            "Zip Complete"
-        )
+//        // remove this later
+//        Messages.showInfoMessage(
+//            project,
+//            "Created zip file:\n${zipFile.absolutePath}",
+//            "Zip Complete"
+//        )
 
 
         /** ************************************************************************
@@ -90,11 +84,11 @@ class SubmitAction : AnAction(SubmitterBundle.message("submitAction.text")) {
         val username = dialog.username
         val password = dialog.password
 
-        Messages.showInfoMessage(
-            project,
-            "Ready to submit as $username",
-            "Submit"
-        )
+//        Messages.showInfoMessage(
+//            project,
+//            "Ready to submit as $username",
+//            "Submit"
+//        )
 
 
         /** ************************************************************************
@@ -107,6 +101,10 @@ class SubmitAction : AnAction(SubmitterBundle.message("submitAction.text")) {
         /** ************************************************************************
          * step 5 - upload zip file to Marmoset
          ************************************************************************* */
+
+
+
+        // REPORT SUCCESS OR FAILURES HERE AFTER ATTEMPTING TO POST
 
 
 //        Messages.showErrorDialog(
