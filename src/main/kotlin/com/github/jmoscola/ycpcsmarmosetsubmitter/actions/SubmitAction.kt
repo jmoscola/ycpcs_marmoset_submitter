@@ -9,6 +9,8 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
+import java.io.File
+
 
 class SubmitAction : AnAction(SubmitterBundle.message("submitAction.text")) {
 
@@ -18,9 +20,10 @@ class SubmitAction : AnAction(SubmitterBundle.message("submitAction.text")) {
 
         // step 1 - zip files
         val zipService = ZipFilesService(project)
+        var zipFile: File? = null
 
         try {
-            val zipFile = zipService.zipProject(
+            zipFile = zipService.zipProject(
                 zipFilename = "submission.zip",
                 allowedExtensions = setOf("h", "cpp", "java"),
                 excludedFilenames = setOf(
@@ -28,16 +31,17 @@ class SubmitAction : AnAction(SubmitterBundle.message("submitAction.text")) {
                     "tests.cpp"
                 )
             )
-            // remove this later
-            Messages.showInfoMessage(
-                project,
-                "Created zip file:\n${zipFile.absolutePath}",
-                "Zip Complete"
-            )
         } catch (e: ProcessCanceledException) {
             Messages.showInfoMessage(project, "Submission canceled.", "Submit")
             throw e
         }
+
+        // remove this later
+        Messages.showInfoMessage(
+            project,
+            "Created zip file:\n${zipFile.absolutePath}",
+            "Zip Complete"
+        )
 
         // step 2 — prompt user for login info
         val dialog = LoginDialog(project)

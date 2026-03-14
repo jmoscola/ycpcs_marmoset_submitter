@@ -1,6 +1,7 @@
 package com.github.jmoscola.ycpcsmarmosetsubmitter.services
 
 import com.intellij.openapi.progress.ProcessCanceledException
+import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.Project
 import java.io.File
@@ -9,6 +10,7 @@ import java.io.InputStream
 import java.nio.file.Path
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
+
 
 class ZipFilesService(private val project: Project) {
 
@@ -60,24 +62,61 @@ class ZipFilesService(private val project: Project) {
             zipFile.delete()
         }
 
+        // variable to shuttle general exceptions out of the lambda
+        // exceptions might include disk writing issues, etc.
+        var zipException: Exception? = null
+
         val zippedSuccessfully = ProgressManager.getInstance().runProcessWithProgressSynchronously(
             {
-                ZipOutputStream(FileOutputStream(zipFile)).use { zipOut ->
-                    baseDir.walkTopDown()
-                        .onEnter { dir -> !defaultExcludedDirs.contains(dir.name) }
-                        .filter { file -> file.isFile }
-                        .filter { file -> !defaultExcludedFiles.contains(file.name) }
-                        .filter { file -> !excludedFilenames.contains(file.name) }
-                        .filter { file -> !defaultExcludedExtensions.contains(file.extension.lowercase()) }
-                        .filter { file -> allowedExtensions == null || allowedExtensions.contains(file.extension.lowercase()) }
-                        .forEach { file ->
-                            ProgressManager.getInstance().progressIndicator?.text = "Zipping ${file.relativeTo(baseDir)}"
+                val indicator: ProgressIndicator = ProgressManager.getInstance().progressIndicator
+
+                indicator.text = "Scanning project files..."
+                indicator.isIndeterminate = true
+
+                // create list of files to zip
+                val filesToZip = baseDir.walkTopDown()
+                    .onEnter { dir ->
+                        ProgressManager.checkCanceled()
+                        !defaultExcludedDirs.contains(dir.name)
+                    }
+                    .filter { it.isFile }
+                    .filter { !defaultExcludedFiles.contains(it.name) }
+                    .filter { !excludedFilenames.contains(it.name) }
+                    .filter { !defaultExcludedExtensions.contains(it.extension.lowercase()) }
+                    .filter { allowedExtensions == null || allowedExtensions.contains(it.extension.lowercase()) }
+                    .toList()
+
+                indicator.isIndeterminate = false
+
+                try {
+                    ZipOutputStream(FileOutputStream(zipFile)).use { zipOut ->
+                        filesToZip.forEachIndexed { index, file ->
+                            ProgressManager.checkCanceled()
+                            indicator.text = "Zipping ${file.relativeTo(baseDir)}"
+                            indicator.fraction = (index + 1).toDouble() / filesToZip.size
                             addFileToZip(file, baseDirPath, zipOut)
                         }
+                    }
+                } catch (e: Exception) {
+                    // Don't catch ProcessCanceledException which is generated when using clicks
+                    // the cancel button — let it propagate normally so runProcessWithProgressSynchronously
+                    // can handle cancellation and return false. ProcessCanceledException will get rethrown
+                    // outside of lambda
+                    if (e is ProcessCanceledException) throw e
+                    zipException = e  // shuttle other non-cancellation exceptions out
                 }
             },"Creating Submission Archive",true, project
         )
 
+        // rethrow any non-cancellation exception that occurred inside the lambda
+        zipException?.let {
+            if (zipFile.exists()) {
+                zipFile.delete()
+            }
+            throw it
+        }
+
+        // user clicked cancel button, propagate ProcessCanceledException
         if (!zippedSuccessfully) {
             if (zipFile.exists()) {
                 zipFile.delete()
@@ -86,6 +125,7 @@ class ZipFilesService(private val project: Project) {
         }
         return zipFile
     }
+
 
     /**
      * Zips project files into a single zip file.
@@ -105,6 +145,7 @@ class ZipFilesService(private val project: Project) {
         file.inputStream().use { input -> copyStreamWithCancelCheck(input, zipOut) }
         zipOut.closeEntry()
     }
+
 
     /**
      * Zips project files into a single zip file.
