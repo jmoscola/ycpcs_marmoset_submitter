@@ -2,6 +2,8 @@ package com.github.jmoscola.ycpcsmarmosetsubmitter.actions
 
 import com.github.jmoscola.ycpcsmarmosetsubmitter.SubmitterBundle
 import com.github.jmoscola.ycpcsmarmosetsubmitter.dialog.LoginDialog
+import com.github.jmoscola.ycpcsmarmosetsubmitter.services.AssignmentInfo
+import com.github.jmoscola.ycpcsmarmosetsubmitter.services.CMakeAssignmentInfoService
 import com.github.jmoscola.ycpcsmarmosetsubmitter.services.LoginCredentialsService
 import com.github.jmoscola.ycpcsmarmosetsubmitter.services.ZipFilesService
 import com.intellij.openapi.actionSystem.AnAction
@@ -17,8 +19,34 @@ class SubmitAction : AnAction(SubmitterBundle.message("submitAction.text")) {
     override fun actionPerformed(e: AnActionEvent) {
 
         val project: Project = e.project ?: return
+        var assignmentInfo: AssignmentInfo? = null
 
-        // step 1 - zip files
+        /** ************************************************************************
+         * step 1 - extract assignment info from CMake file
+         ************************************************************************* */
+        val cmakeService = CMakeAssignmentInfoService(project)
+        try {
+            assignmentInfo = cmakeService.parse("CMakeLists.assignment_info.txt")
+            val semester = "${assignmentInfo.term} ${java.time.Year.now()}"
+
+            Messages.showInfoMessage(
+                project,
+                "COURSE_NAME: ${assignmentInfo.courseName} \nTERM: ${assignmentInfo.term} \nSEMESTER: $semester \nPROJECT_NUM: ${assignmentInfo.projectNumber}",
+                "Assignment Info"
+            )
+        } catch (e: IllegalStateException) {
+            Messages.showErrorDialog(
+                project,
+                "${e.message}",
+                "Submission Failed"
+            )
+            throw e
+        }
+
+
+        /** ************************************************************************
+         * step 2 - create zip file containing project files
+         ************************************************************************* */
         val zipService = ZipFilesService(project)
         var zipFile: File? = null
 
@@ -43,7 +71,10 @@ class SubmitAction : AnAction(SubmitterBundle.message("submitAction.text")) {
             "Zip Complete"
         )
 
-        // step 2 — prompt user for login info
+
+        /** ************************************************************************
+         * step 3 — prompt user for Marmoset login info
+         ************************************************************************* */
         val dialog = LoginDialog(project)
 
         if (!dialog.showAndGet()) {
@@ -65,13 +96,18 @@ class SubmitAction : AnAction(SubmitterBundle.message("submitAction.text")) {
             "Submit"
         )
 
-        // step 3 - save username and password securely in persistent settings
+
+        /** ************************************************************************
+         * step 4 - save username and password securely in persistent settings
+         ************************************************************************* */
         val loginService = LoginCredentialsService(project)
         loginService.save(username, password)
 
-        // Step 4 — upload (we will implement next)
-        //
-        //
+
+        /** ************************************************************************
+         * step 5 - upload zip file to Marmoset
+         ************************************************************************* */
+
 
 //        Messages.showErrorDialog(
 //            project,
