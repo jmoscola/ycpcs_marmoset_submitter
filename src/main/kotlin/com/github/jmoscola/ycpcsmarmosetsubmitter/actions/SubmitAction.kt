@@ -5,6 +5,8 @@ import com.github.jmoscola.ycpcsmarmosetsubmitter.dialog.LoginDialog
 import com.github.jmoscola.ycpcsmarmosetsubmitter.services.AssignmentInfo
 import com.github.jmoscola.ycpcsmarmosetsubmitter.services.CMakeAssignmentInfoService
 import com.github.jmoscola.ycpcsmarmosetsubmitter.services.LoginCredentialsService
+import com.github.jmoscola.ycpcsmarmosetsubmitter.services.UploadException
+import com.github.jmoscola.ycpcsmarmosetsubmitter.services.UploadService
 import com.github.jmoscola.ycpcsmarmosetsubmitter.services.ZipFilesService
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -101,11 +103,39 @@ class SubmitAction : AnAction(SubmitterBundle.message("submitAction.text")) {
         /** ************************************************************************
          * step 5 - upload zip file to Marmoset
          ************************************************************************* */
+        val uploadService = UploadService(project)
+
+        try {
+            uploadService.upload(zipFile, username, password, assignmentInfo)
+            Messages.showInfoMessage(project, "Submission successful!", "Marmoset Submission")
+        } catch (e: UploadException) {
+            val message = when (e.responseCode) {
+                403  -> "<html>" +
+                            "Invalid username or password.<br>" +
+                            "&nbsp;&nbsp;&nbsp;&nbsp;&#8226;&nbsp;Username: $username" +
+                        "</html>"
+                404  -> "<html>" +
+                            "Invalid semester, course, or assignment name.<br>" +
+                            "Please see your instructor.<br>" +
+                            "&nbsp;&nbsp;&nbsp;&nbsp;&#8226;&nbsp;Semester: ${assignmentInfo.semester}<br>" +
+                            "&nbsp;&nbsp;&nbsp;&nbsp;&#8226;&nbsp;Course: ${assignmentInfo.courseName}<br>" +
+                            "&nbsp;&nbsp;&nbsp;&nbsp;&#8226;&nbsp;Assignment: ${assignmentInfo.projectNumber}" +
+                        "</html>"
+                else -> e.message ?: "Unknown error."
+            }
+            Messages.showErrorDialog(project, message, "Submission Failed")
+        } catch (e: Exception) {
+            Messages.showErrorDialog(project, "Network error: ${e.message}", "Submission Failed")
+        }
 
 
+        // TODO: move all strings into bundle
 
-        // REPORT SUCCESS OR FAILURES HERE AFTER ATTEMPTING TO POST
-
+        // TODO: change submission.zip filename to my new format that includes the assignment number
+        // TODO: maybe change the Makefiles again so they call the submission file "submission" and not "solution"
+        // TODO:   the above will require changing the markdown files (assignment writeups
+        // TODO:   the above will require updating CS420 Makefiles and markdown files too
+        // TODO:   the above won't require, but I should probably change the ECE260 Makefiles too
 
 //        Messages.showErrorDialog(
 //            project,

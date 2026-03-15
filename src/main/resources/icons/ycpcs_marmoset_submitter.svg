@@ -1,7 +1,7 @@
 <svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
 
-  <path fill="currentColor" d="M8 1L4 5h3v5h2V5h3L8 1z"></path>
+  <path fill="#499C54" d="M8 1L4 5h3v5h2V5h3L8 1z"></path>
 
-  <path fill="currentColor" d="M3 11v2h10v-2h1v3H2v-3h1z"></path>
+  <path fill="#3592C4" d="M3 11v2h10v-2h1v3H2v-3h1z"></path>
 
 </svg>
