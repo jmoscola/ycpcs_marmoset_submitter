@@ -139,9 +139,9 @@ class ZipFilesService(private val project: Project) {
             .toString()
             .replace("\\", "/")
 
-        val topLevelFolder = "submission" // or assignment name
-        val zipEntryPath = "$topLevelFolder/$relativeZipPath" // top-level folder in zip
-        zipOut.putNextEntry(ZipEntry(zipEntryPath))
+//        val topLevelFolder = "submission" // or assignment name
+//        val zipEntryPath = "$topLevelFolder/$relativeZipPath" // top-level folder in zip
+        zipOut.putNextEntry(ZipEntry(relativeZipPath))
         file.inputStream().use { input -> copyStreamWithCancelCheck(input, zipOut) }
         zipOut.closeEntry()
     }
