@@ -16,7 +16,7 @@ import com.intellij.openapi.ui.Messages
 import java.io.File
 
 
-class SubmitAction : AnAction(SubmitterBundle.message("submitAction.toolText")) {
+class SubmitAction : AnAction() {
 
     override fun actionPerformed(e: AnActionEvent) {
 
