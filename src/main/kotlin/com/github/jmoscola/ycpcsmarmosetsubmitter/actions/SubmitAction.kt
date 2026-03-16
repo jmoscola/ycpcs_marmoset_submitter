@@ -16,7 +16,7 @@ import com.intellij.openapi.ui.Messages
 import java.io.File
 
 
-class SubmitAction : AnAction(SubmitterBundle.message("submitAction.text")) {
+class SubmitAction : AnAction(SubmitterBundle.message("submitAction.toolText")) {
 
     override fun actionPerformed(e: AnActionEvent) {
 
@@ -28,14 +28,21 @@ class SubmitAction : AnAction(SubmitterBundle.message("submitAction.text")) {
          ************************************************************************* */
         val cmakeService = CMakeAssignmentInfoService(project)
         try {
+            // TODO: get the CMakeLists file name from a new settings file
             assignmentInfo = cmakeService.parse("CMakeLists.assignment_info.txt")
 //            Messages.showInfoMessage(
 //                project,
 //                "COURSE_NAME: ${assignmentInfo.courseName} \nTERM: ${assignmentInfo.term} \nSEMESTER: ${assignmentInfo.semester} \nPROJECT_NUM: ${assignmentInfo.projectNumber}",
-//                "Assignment Info"
+//                SubmitterBundle.message("submitAction.submissionDialogTitle")
 //            )
         } catch (e: IllegalStateException) {
-            Messages.showErrorDialog(project, "${e.message}", "Submission Failed")
+            Messages.showErrorDialog(
+                project,
+                SubmitterBundle.message(
+                    "submitAction.submissionFailed",
+                    e.message ?: SubmitterBundle.message("submitAction.error.unknown")),
+                SubmitterBundle.message("submitAction.submissionErrorDialogTitle")
+            )
             throw e
         }
 
@@ -48,7 +55,9 @@ class SubmitAction : AnAction(SubmitterBundle.message("submitAction.text")) {
 
         try {
             zipFile = zipService.zipProject(
-                zipFilename = "submission.zip",
+                // TODO: put zip file suffix name in .settings file
+                zipFilename = "${assignmentInfo.projectNumber}_submission.zip",
+                // TODO: put allowedExtensions and Filenames in .settings file
                 allowedExtensions = setOf("h", "cpp", "java"),
                 excludedFilenames = setOf(
                     "Flags.h",
@@ -56,16 +65,13 @@ class SubmitAction : AnAction(SubmitterBundle.message("submitAction.text")) {
                 )
             )
         } catch (e: ProcessCanceledException) {
-            Messages.showInfoMessage(project, "Submission canceled.", "Submit")
+            Messages.showInfoMessage(
+                project,
+                SubmitterBundle.message("submitAction.submissionCanceled"),
+                SubmitterBundle.message("submitAction.submissionDialogTitle")
+            )
             throw e
         }
-
-//        // remove this later
-//        Messages.showInfoMessage(
-//            project,
-//            "Created zip file:\n${zipFile.absolutePath}",
-//            "Zip Complete"
-//        )
 
 
         /** ************************************************************************
@@ -77,8 +83,8 @@ class SubmitAction : AnAction(SubmitterBundle.message("submitAction.text")) {
             // user canceled login
             Messages.showInfoMessage(
                 project,
-                "Submission cancelled.",
-                "Submit"
+                SubmitterBundle.message("submitAction.submissionCanceled"),
+                SubmitterBundle.message("submitAction.submissionDialogTitle")
             )
             return
         }
@@ -89,7 +95,7 @@ class SubmitAction : AnAction(SubmitterBundle.message("submitAction.text")) {
 //        Messages.showInfoMessage(
 //            project,
 //            "Ready to submit as $username",
-//            "Submit"
+//            SubmitterBundle.message("submitAction.submissionDialogTitle")
 //        )
 
 
@@ -107,47 +113,34 @@ class SubmitAction : AnAction(SubmitterBundle.message("submitAction.text")) {
 
         try {
             uploadService.upload(zipFile, username, password, assignmentInfo)
-            Messages.showInfoMessage(project, "Submission successful!", "Marmoset Submission")
+            Messages.showInfoMessage(
+                project,
+                SubmitterBundle.message("submitAction.submissionSuccessful"),
+                SubmitterBundle.message("submitAction.submissionDialogTitle")
+            )
         } catch (e: UploadException) {
             val message = when (e.responseCode) {
-                403  -> "<html>" +
-                            "Invalid username or password.<br>" +
-                            "&nbsp;&nbsp;&nbsp;&nbsp;&#8226;&nbsp;Username: $username" +
-                        "</html>"
-                404  -> "<html>" +
-                            "Invalid semester, course, or assignment name.<br>" +
-                            "Please see your instructor.<br>" +
-                            "&nbsp;&nbsp;&nbsp;&nbsp;&#8226;&nbsp;Semester: ${assignmentInfo.semester}<br>" +
-                            "&nbsp;&nbsp;&nbsp;&nbsp;&#8226;&nbsp;Course: ${assignmentInfo.courseName}<br>" +
-                            "&nbsp;&nbsp;&nbsp;&nbsp;&#8226;&nbsp;Assignment: ${assignmentInfo.projectNumber}" +
-                        "</html>"
-                else -> e.message ?: "Unknown error."
+                403  -> SubmitterBundle.message("submitAction.error.403", username)
+                404  -> SubmitterBundle.message("submitAction.error.404",
+                    assignmentInfo.semester,
+                    assignmentInfo.courseName,
+                    assignmentInfo.projectNumber)
+                else -> e.message ?: SubmitterBundle.message("submitAction.error.unknown")
             }
-            Messages.showErrorDialog(project, message, "Submission Failed")
+            Messages.showErrorDialog(
+                project,
+                SubmitterBundle.message("submitAction.submissionFailed", message),
+                SubmitterBundle.message("submitAction.submissionErrorDialogTitle"))
         } catch (e: Exception) {
-            Messages.showErrorDialog(project, "Network error: ${e.message}", "Submission Failed")
+            Messages.showErrorDialog(
+                project,
+                SubmitterBundle.message("submitAction.submissionFailed",
+                    SubmitterBundle.message(
+                        "submitAction.error.network",
+                        e.message ?: SubmitterBundle.message("submitAction.error.unknown"))
+                ),
+                SubmitterBundle.message("submitAction.submissionErrorDialogTitle")
+            )
         }
-
-
-        // TODO: move all strings into bundle
-
-        // TODO: change submission.zip filename to my new format that includes the assignment number
-        // TODO: maybe change the Makefiles again so they call the submission file "submission" and not "solution"
-        // TODO:   the above will require changing the markdown files (assignment writeups
-        // TODO:   the above will require updating CS420 Makefiles and markdown files too
-        // TODO:   the above won't require, but I should probably change the ECE260 Makefiles too
-
-//        Messages.showErrorDialog(
-//            project,
-//            "Authentication failed.",
-//            "Submit Error"
-//        )
-//        } catch (e: ProcessCanceledException) {
-//            // user canceled the zipping, terminate the action
-//            Messages.showInfoMessage(project, "Submission canceled.", "Submit")
-//            throw e
-//        } catch (e: Exception) {
-//            Messages.showErrorDialog(project, "Submission failed: ${e.message}", "Submit")
-//        }
     }
 }
