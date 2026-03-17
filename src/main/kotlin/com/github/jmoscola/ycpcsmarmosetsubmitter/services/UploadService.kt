@@ -4,13 +4,12 @@ import com.github.jmoscola.ycpcsmarmosetsubmitter.SubmitterBundle
 import com.intellij.openapi.project.Project
 import java.io.File
 import java.net.HttpURLConnection
-import java.net.URL
+import java.net.URI
 
 
 class UploadService(private val project: Project) {
 
     companion object {
-        private const val SUBMISSION_URL = "https://cs.ycp.edu/marmoset/bluej/SubmitProjectViaBlueJSubmitter"
         private const val BOUNDARY = "----UploaderBoundary"
         private const val CRLF = "\r\n"
     }
@@ -19,20 +18,23 @@ class UploadService(private val project: Project) {
      * Uploads a zip file to the Marmoset submission server.
      * Mimics the following curl command:
      *   curl -F 'submittedFiles=@solution.zip' -F 'campusUID=username' -F 'password=password' -F 'semester=Fall 2026' -F 'courseName=CS 350' -F 'projectNumber=assign01' https://cs.ycp.edu/marmoset/bluej/SubmitProjectViaBlueJSubmitter
-     * @param zipFile       The zip file to upload.
-     * @param username      The campus UID.
-     * @param password      The user's password.
+     * @param zipFile        The zip file to upload.
+     * @param username       The campus UID.
+     * @param password       The user's password.
      * @param assignmentInfo The parsed assignment info (courseName, projectNumber, semester).
+     * @param submissionUrl  The URL of the submission server.
      * @throws UploadException if the server returns a non-success response.
-     * @throws Exception for network or IO errors.
+     * @throws MalformedURLException if the submission URL is invalid.
+     * @throws IOException for network or IO errors.
      */
     fun upload(
         zipFile: File,
         username: String,
         password: String,
-        assignmentInfo: AssignmentInfo
+        assignmentInfo: AssignmentInfo,
+        submissionUrl: String
     ) {
-        val connection = (URL(SUBMISSION_URL).openConnection() as HttpURLConnection).apply {
+        val connection = (URI(submissionUrl).toURL().openConnection() as HttpURLConnection).apply {
             requestMethod = "POST"
             doOutput = true
             setRequestProperty("Content-Type", "multipart/form-data; boundary=$BOUNDARY")

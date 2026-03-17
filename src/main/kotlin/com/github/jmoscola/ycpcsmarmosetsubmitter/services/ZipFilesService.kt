@@ -15,33 +15,6 @@ import java.util.zip.ZipOutputStream
 
 class ZipFilesService(private val project: Project) {
 
-    private val defaultExcludedDirs = setOf(
-        ".git",
-        ".idea",
-        ".vs",
-        ".gradle",
-        "build",
-        "out",
-        "target",
-        "node_modules",
-        "cmake-build-debug"
-    )
-
-    private val defaultExcludedFiles = setOf(
-        ".DS_Store",
-        "submission.zip"
-    )
-
-    private val defaultExcludedExtensions = setOf(
-        "o",
-        "d",
-        "a",
-        "iml",
-        "log",
-        "stackdump",
-        "exe"
-    )
-
     /**
      * Zips project files into a single zip file.
      * @param zipFilename Name of the zip file to create in project base path.
@@ -51,7 +24,9 @@ class ZipFilesService(private val project: Project) {
     fun zipProject(
         zipFilename: String,
         allowedExtensions: Set<String>? = null,
-        excludedFilenames: Set<String> = emptySet()
+        excludedFilenames: Set<String> = emptySet(),
+        excludedDirectories: Set<String>,
+        excludedExtensions: Set<String>
     ): File {
         val basePath = project.basePath ?: error(SubmitterBundle.message("zipFilesService.error.projectPathNotFound"))
         val baseDir = File(basePath)
@@ -78,12 +53,11 @@ class ZipFilesService(private val project: Project) {
                 val filesToZip = baseDir.walkTopDown()
                     .onEnter { dir ->
                         ProgressManager.checkCanceled()
-                        !defaultExcludedDirs.contains(dir.name)
+                        !excludedDirectories.contains(dir.name)
                     }
                     .filter { it.isFile }
-                    .filter { !defaultExcludedFiles.contains(it.name) }
                     .filter { !excludedFilenames.contains(it.name) }
-                    .filter { !defaultExcludedExtensions.contains(it.extension.lowercase()) }
+                    .filter { !excludedExtensions.contains(it.extension.lowercase()) }
                     .filter { allowedExtensions == null || allowedExtensions.contains(it.extension.lowercase()) }
                     .toList()
 
