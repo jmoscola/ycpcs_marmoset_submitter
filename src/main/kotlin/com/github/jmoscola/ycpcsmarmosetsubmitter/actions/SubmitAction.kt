@@ -28,7 +28,6 @@ class SubmitAction : AnAction() {
          ************************************************************************* */
         val cmakeService = CMakeAssignmentInfoService(project)
         try {
-            // TODO: get the CMakeLists file name from a new settings file
             assignmentInfo = cmakeService.parse("CMakeLists.assignment_info.txt")
 //            Messages.showInfoMessage(
 //                project,
@@ -55,9 +54,7 @@ class SubmitAction : AnAction() {
 
         try {
             zipFile = zipService.zipProject(
-                // TODO: put zip file suffix name in .settings file
                 zipFilename = "${assignmentInfo.projectNumber}_submission.zip",
-                // TODO: put allowedExtensions and Filenames in .settings file
                 allowedExtensions = setOf("h", "cpp", "java"),
                 excludedFilenames = setOf(
                     "Flags.h",

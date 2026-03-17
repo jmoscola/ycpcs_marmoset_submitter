@@ -1,5 +1,6 @@
 package com.github.jmoscola.ycpcsmarmosetsubmitter.services
 
+import com.github.jmoscola.ycpcsmarmosetsubmitter.SubmitterBundle
 import com.intellij.openapi.project.Project
 import java.io.File
 
@@ -24,12 +25,16 @@ class CMakeAssignmentInfoService(private val project: Project) {
      */
     fun parse(filename: String): AssignmentInfo {
         val basePath = project.basePath
-            ?: error("Project base path not found")
+            ?: error(
+                SubmitterBundle.message("cmakeAssignmentInfoService.error.projectPathNotFound")
+            )
 
         val cmakeFile = File(basePath, filename)
 
         if (!cmakeFile.exists()) {
-            error("Assignment info file not found: $filename")
+            error(
+                SubmitterBundle.message("cmakeAssignmentInfoService.error.assignmentInfoFileNotFound", filename)
+            )
         }
 
         val properties = mutableMapOf<String, String>()
@@ -41,9 +46,9 @@ class CMakeAssignmentInfoService(private val project: Project) {
         }
 
         return AssignmentInfo(
-            courseName    = properties["COURSE_NAME"]    ?: error("Missing COURSE_NAME in $filename"),
-            term          = properties["TERM"]           ?: error("Missing TERM in $filename"),
-            projectNumber = properties["PROJECT_NUMBER"] ?: error("Missing PROJECT_NUMBER in $filename"),
+            courseName    = properties["COURSE_NAME"]    ?: error(SubmitterBundle.message("cmakeAssignmentInfoService.error.missingCourseName", filename)),
+            term          = properties["TERM"]           ?: error(SubmitterBundle.message("cmakeAssignmentInfoService.error.missingTerm", filename)),
+            projectNumber = properties["PROJECT_NUMBER"] ?: error(SubmitterBundle.message("cmakeAssignmentInfoService.error.missingProjectNumber", filename)),
             semester      = "${properties["TERM"]} ${java.time.Year.now()}"
         )
     }
