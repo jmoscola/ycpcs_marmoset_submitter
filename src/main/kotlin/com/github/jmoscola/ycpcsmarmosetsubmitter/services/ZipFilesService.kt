@@ -1,5 +1,6 @@
 package com.github.jmoscola.ycpcsmarmosetsubmitter.services
 
+import com.github.jmoscola.ycpcsmarmosetsubmitter.SubmitterBundle
 import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.ProgressManager
@@ -52,7 +53,7 @@ class ZipFilesService(private val project: Project) {
         allowedExtensions: Set<String>? = null,
         excludedFilenames: Set<String> = emptySet()
     ): File {
-        val basePath = project.basePath ?: error("Project base path not found")
+        val basePath = project.basePath ?: error(SubmitterBundle.message("zipFilesService.error.projectPathNotFound"))
         val baseDir = File(basePath)
         val baseDirPath: Path = baseDir.toPath()
         val zipFile = File(baseDir, zipFilename)
@@ -70,7 +71,7 @@ class ZipFilesService(private val project: Project) {
             {
                 val indicator: ProgressIndicator = ProgressManager.getInstance().progressIndicator
 
-                indicator.text = "Scanning project files..."
+                indicator.text = SubmitterBundle.message("zipFilesService.scanningProjectFiles")
                 indicator.isIndeterminate = true
 
                 // create list of files to zip
@@ -92,7 +93,7 @@ class ZipFilesService(private val project: Project) {
                     ZipOutputStream(FileOutputStream(zipFile)).use { zipOut ->
                         filesToZip.forEachIndexed { index, file ->
                             ProgressManager.checkCanceled()
-                            indicator.text = "Zipping ${file.relativeTo(baseDir)}"
+                            indicator.text = SubmitterBundle.message("zipFilesService.zippingFile", file.relativeTo(baseDir))
                             indicator.fraction = (index + 1).toDouble() / filesToZip.size
                             addFileToZip(file, baseDirPath, zipOut)
                         }
@@ -105,7 +106,10 @@ class ZipFilesService(private val project: Project) {
                     if (e is ProcessCanceledException) throw e
                     zipException = e  // shuttle other non-cancellation exceptions out
                 }
-            },"Creating Submission Archive",true, project
+            },
+            SubmitterBundle.message("zipFilesService.creatingArchive"),
+            true,
+            project
         )
 
         // rethrow any non-cancellation exception that occurred inside the lambda

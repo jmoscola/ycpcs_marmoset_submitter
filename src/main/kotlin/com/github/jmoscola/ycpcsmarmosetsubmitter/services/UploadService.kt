@@ -1,5 +1,6 @@
 package com.github.jmoscola.ycpcsmarmosetsubmitter.services
 
+import com.github.jmoscola.ycpcsmarmosetsubmitter.SubmitterBundle
 import com.intellij.openapi.project.Project
 import java.io.File
 import java.net.HttpURLConnection
@@ -76,8 +77,11 @@ class UploadService(private val project: Project) {
         val responseCode = connection.responseCode
         if (responseCode !in 200..299) {
             val message = connection.errorStream?.bufferedReader()?.readText()
-                ?: "No error message returned"
-            throw UploadException(responseCode, "Upload failed (HTTP $responseCode): $message")
+                ?: SubmitterBundle.message("uploadService.error.noMessage")
+            throw UploadException(
+                responseCode,
+                SubmitterBundle.message("uploadService.error.uploadFailed", responseCode, message)
+            )
         }
     }
 }
