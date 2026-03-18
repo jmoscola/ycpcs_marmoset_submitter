@@ -130,8 +130,9 @@ class SubmitAction : AnAction() {
      * Zips the project files into a single zip file for submission using
      * [ZipFilesService]. The zip filename is constructed from the project
      * number and the zip filename suffix specified in the project configuration.
-     * Allowed extensions, excluded filenames, excluded directories, and excluded
-     * extensions are all sourced from the project configuration.
+     * Allowed filenames, allowed extensions, excluded filenames, excluded
+     * directories, and excluded extensions are all sourced from the project
+     * configuration.
      *
      * @param project        The current IntelliJ project.
      * @param config         The project configuration containing zip options and exclusion rules.
@@ -142,10 +143,11 @@ class SubmitAction : AnAction() {
     private fun createZip(project: Project, config: ProjectConfig, assignmentInfo: AssignmentInfo): File? {
         return try {
             ZipFilesService(project).zipProject(
-                zipFilename = "${assignmentInfo.projectNumber}${config.zipFilenameSuffix}.zip",
-                allowedExtensions = config.allowedExtensions,
-                excludedExtensions = config.excludedExtensions,
-                excludedFilenames = config.excludedFilenames,
+                zipFilename         = "${assignmentInfo.projectNumber}${config.zipFilenameSuffix}.zip",
+                allowedFilenames    = config.allowedFilenames,
+                allowedExtensions   = config.allowedExtensions,
+                excludedExtensions  = config.excludedExtensions,
+                excludedFilenames   = config.excludedFilenames,
                 excludedDirectories = config.excludedDirectories
             )
         } catch (e: ProcessCanceledException) {

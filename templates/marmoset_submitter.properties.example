@@ -43,6 +43,16 @@ assignmentInfoFilename=CMakeLists.assignment_info.txt
 # FILE INCLUSION RULES
 #########################################################
 
+# If set, only files with these exact names will be included
+# in the submission, regardless of extension. This is a more
+# restrictive filter than allowedExtensions. If omitted, all
+# filenames are allowed (subject to the other rules).
+# Uncommenting and setting no values results in an emptySet
+# of allowed files thus resulting in an empty zip file.
+#
+# Example: allowedFilenames=main.cpp,main.h,Makefile
+#allowedFilenames=
+
 # Only files with the following extensions will be included
 # in the submission zip file. Files with extensions other
 # than those listed here will be excluded. Specify as a

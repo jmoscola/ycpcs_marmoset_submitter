@@ -20,6 +20,8 @@ import java.util.zip.ZipOutputStream
  *
  * Files are included or excluded based on the following rules, all of
  * which are sourced from the project configuration file:
+ *   - Only files with names in [allowedFilenames] are included
+ *     (if null, all filenames are allowed — more restrictive than [allowedExtensions])
  *   - Only files with extensions in [allowedExtensions] are included
  *     (if null, all extensions are allowed)
  *   - Files with names in [excludedFilenames] are excluded
@@ -46,6 +48,12 @@ class ZipFilesService(private val project: Project) {
      * @param zipFilename         The name of the zip file to create in the project
      *                            root directory. Any existing file with the same
      *                            name will be overwritten.
+     * @param allowedFilenames    A whitelist of exact filenames to include in the
+     *                            zip file. A value of null indicates that all
+     *                            filenames are allowed. When set, only files whose
+     *                            names appear in this set will be included,
+     *                            regardless of extension. This is a more restrictive
+     *                            filter than [allowedExtensions].
      * @param allowedExtensions   A whitelist of file extensions to include in the
      *                            zip file. A value of null indicates that all
      *                            extensions are allowed. An empty set indicates
@@ -63,7 +71,8 @@ class ZipFilesService(private val project: Project) {
      */
     fun zipProject(
         zipFilename: String,
-        allowedExtensions: Set<String>? = null,
+        allowedFilenames: Set<String>? = null,   // null = no restriction
+        allowedExtensions: Set<String>? = null,  // null = allow all
         excludedExtensions: Set<String>,
         excludedFilenames: Set<String>,
         excludedDirectories: Set<String>
@@ -99,6 +108,7 @@ class ZipFilesService(private val project: Project) {
                     .filter { !excludedFilenames.contains(it.name) }
                     .filter { !excludedExtensions.contains(it.extension.lowercase()) }
                     .filter { allowedExtensions == null || allowedExtensions.contains(it.extension.lowercase()) }
+                    .filter { allowedFilenames == null || allowedFilenames.contains(it.name) }
                     .toList()
 
                 indicator.isIndeterminate = false
@@ -164,8 +174,6 @@ class ZipFilesService(private val project: Project) {
             .toString()
             .replace("\\", "/")
 
-//        val topLevelFolder = "submission" // or assignment name
-//        val zipEntryPath = "$topLevelFolder/$relativeZipPath" // top-level folder in zip
         zipOut.putNextEntry(ZipEntry(relativeZipPath))
         file.inputStream().use { input -> copyStreamWithCancelCheck(input, zipOut) }
         zipOut.closeEntry()

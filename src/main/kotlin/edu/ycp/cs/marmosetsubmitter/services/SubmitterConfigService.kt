@@ -15,6 +15,12 @@ import java.util.Properties
  * @property submissionUrl          The URL of the Marmoset submission server. Required.
  * @property assignmentInfoFilename The name of the CMake assignment info file
  *                                  in the project root directory. Required.
+ * @property allowedFilenames       A whitelist of exact filenames to include in
+ *                                  the submission zip file. A value of null indicates
+ *                                  that all filenames are allowed. When set, only
+ *                                  files whose names appear in this set will be
+ *                                  included, regardless of extension. This is a
+ *                                  more restrictive filter than [allowedExtensions].
  * @property allowedExtensions      A whitelist of file extensions to include in
  *                                  the submission zip file. A value of null indicates
  *                                  that all extensions are allowed. An empty set
@@ -36,6 +42,7 @@ import java.util.Properties
 data class ProjectConfig(
     val submissionUrl: String,            // required
     val assignmentInfoFilename: String,   // required
+    val allowedFilenames: Set<String>?,   // null = no restriction; if set, allow only these filenames
     val allowedExtensions: Set<String>?,  // null = allow all; emptySet = allow nothing
     val excludedFilenames: Set<String>,   // not required, can be emptySet
     val excludedDirectories: Set<String>, // not required, can be emptySet
@@ -45,7 +52,7 @@ data class ProjectConfig(
 
 /**
  * Service that loads and parses the plugin configuration file
- * (marmoset_submitter.properties) from the root directory of the
+ * (ycpcs_marmoset_submitter.properties) from the root directory of the
  * current project. The configuration file controls all aspects of the
  * submission workflow, including the server URL, file exclusion rules,
  * and zip file naming.
@@ -54,6 +61,7 @@ data class ProjectConfig(
  * ```
  * submissionUrl=https://cs.ycp.edu/marmoset/bluej/SubmitProjectViaBlueJSubmitter
  * assignmentInfoFilename=CMakeLists.assignment_info.txt
+ * allowedFilenames=main.cpp,main.h,Makefile
  * allowedExtensions=h,cpp
  * excludedFilenames=.DS_Store,Flags.h,tests.cpp
  * excludedDirectories=.git,.idea,build,out
@@ -83,6 +91,7 @@ class SubmitterConfigService(private val project: Project) {
      *   - assignmentInfoFilename
      *
      * Optional properties (with defaults):
+     *   - allowedFilenames   (default: null — allow all filenames)
      *   - allowedExtensions  (default: null — allow all extensions)
      *   - excludedFilenames  (default: empty — exclude nothing)
      *   - excludedDirectories (default: empty — exclude nothing)
@@ -110,6 +119,7 @@ class SubmitterConfigService(private val project: Project) {
         return ProjectConfig(
             submissionUrl          = props.require("submissionUrl"),
             assignmentInfoFilename = props.require("assignmentInfoFilename"),
+            allowedFilenames       = props.parseSet("allowedFilenames"),     // null = no restriction; if set, allow only these filenames
             allowedExtensions      = props.parseSet("allowedExtensions"),    // null = allow all; emptySet = allow nothing
             excludedExtensions     = props.parseSet("excludedExtensions")    ?: emptySet(),
             excludedFilenames      = props.parseSet("excludedFilenames")     ?: emptySet(),
