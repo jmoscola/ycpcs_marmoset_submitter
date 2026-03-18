@@ -1,52 +1,251 @@
-# ycpcs_marmoset_submitter
-
-![Build](https://github.com/jmoscola/ycpcs_marmoset_submitter/workflows/Build/badge.svg)
-[![Version](https://img.shields.io/jetbrains/plugin/v/MARKETPLACE_ID.svg)](https://plugins.jetbrains.com/plugin/MARKETPLACE_ID)
-[![Downloads](https://img.shields.io/jetbrains/plugin/d/MARKETPLACE_ID.svg)](https://plugins.jetbrains.com/plugin/MARKETPLACE_ID)
-
-## Template ToDo list
-- [x] Create a new [IntelliJ Platform Plugin Template][template] project.
-- [ ] Get familiar with the [template documentation][template].
-- [ ] Adjust the [pluginGroup](./gradle.properties) and [pluginName](./gradle.properties), as well as the [id](./src/main/resources/META-INF/plugin.xml) and [sources package](./src/main/kotlin).
-- [ ] Adjust the plugin description in `README` (see [Tips][docs:plugin-description])
-- [ ] Review the [Legal Agreements](https://plugins.jetbrains.com/docs/marketplace/legal-agreements.html?from=IJPluginTemplate).
-- [ ] [Publish a plugin manually](https://plugins.jetbrains.com/docs/intellij/publishing-plugin.html?from=IJPluginTemplate) for the first time.
-- [ ] Set the `MARKETPLACE_ID` in the above README badges. You can obtain it once the plugin is published to JetBrains Marketplace.
-- [ ] Set the [Plugin Signing](https://plugins.jetbrains.com/docs/intellij/plugin-signing.html?from=IJPluginTemplate) related [secrets](https://github.com/JetBrains/intellij-platform-plugin-template#environment-variables).
-- [ ] Set the [Deployment Token](https://plugins.jetbrains.com/docs/marketplace/plugin-upload.html?from=IJPluginTemplate).
-- [ ] Click the <kbd>Watch</kbd> button on the top of the [IntelliJ Platform Plugin Template][template] to be notified about releases containing new features and fixes.
-- [ ] Configure the [CODECOV_TOKEN](https://docs.codecov.com/docs/quick-start) secret for automated test coverage reports on PRs
+# YCPCS Marmoset Submitter
 
 <!-- Plugin description -->
-This Fancy IntelliJ Platform Plugin is going to be your implementation of the brilliant ideas that you have.
-
-This specific section is a source for the [plugin.xml](/src/main/resources/META-INF/plugin.xml) file which will be extracted by the [Gradle](/build.gradle.kts) during the build process.
-
-To keep everything working, do not remove `<!-- ... -->` sections. 
+An IntelliJ Platform plugin that automates the submission of student programming
+assignments to the [YCPCS Marmoset](https://cs.ycp.edu/marmoset) submission server.
+The plugin zips the project files according to configurable inclusion and exclusion
+rules, prompts the student for their Marmoset credentials, and uploads the submission
+directly from within the IDE.
 <!-- Plugin description end -->
+
+---
+
+## Table of Contents
+
+- [Requirements](#requirements)
+- [Installation](#installation)
+- [Configuration](#configuration)
+  - [Instructor Setup](#instructor-setup)
+  - [CMake Assignment Info File](#cmake-assignment-info-file)
+  - [Plugin Configuration File](#plugin-configuration-file)
+- [Usage](#usage)
+- [For Developers](#for-developers)
+- [License](#license)
+
+---
+
+## Requirements
+
+- IntelliJ-based IDE (IntelliJ IDEA, CLion, PyCharm, WebStorm, etc.)
+- JDK 21 or later
+
+---
 
 ## Installation
 
-- Using the IDE built-in plugin system:
+### From the JetBrains Marketplace
 
-  <kbd>Settings/Preferences</kbd> > <kbd>Plugins</kbd> > <kbd>Marketplace</kbd> > <kbd>Search for "ycpcs_marmoset_submitter"</kbd> >
-  <kbd>Install</kbd>
+1. Open your JetBrains IDE.
+2. Go to **Settings → Plugins → Marketplace**.
+3. Search for **YCPCS Marmoset Submitter**.
+4. Click **Install** and restart the IDE when prompted.
 
-- Using JetBrains Marketplace:
+### From a Local Build
 
-  Go to [JetBrains Marketplace](https://plugins.jetbrains.com/plugin/MARKETPLACE_ID) and install it by clicking the <kbd>Install to ...</kbd> button in case your IDE is running.
-
-  You can also download the [latest release](https://plugins.jetbrains.com/plugin/MARKETPLACE_ID/versions) from JetBrains Marketplace and install it manually using
-  <kbd>Settings/Preferences</kbd> > <kbd>Plugins</kbd> > <kbd>⚙️</kbd> > <kbd>Install plugin from disk...</kbd>
-
-- Manually:
-
-  Download the [latest release](https://github.com/jmoscola/ycpcs_marmoset_submitter/releases/latest) and install it manually using
-  <kbd>Settings/Preferences</kbd> > <kbd>Plugins</kbd> > <kbd>⚙️</kbd> > <kbd>Install plugin from disk...</kbd>
-
+1. Clone the repository:
+   ```
+   git clone https://github.com/jmoscola/ycpcs-marmoset-submitter.git
+   ```
+2. Build the plugin:
+   ```
+   ./gradlew buildPlugin
+   ```
+3. In your JetBrains IDE, go to **Settings → Plugins → ⚙️ → Install Plugin from Disk**.
+4. Select the `.zip` file generated in `build/distributions/`.
+5. Restart the IDE when prompted.
 
 ---
-Plugin based on the [IntelliJ Platform Plugin Template][template].
 
-[template]: https://github.com/JetBrains/intellij-platform-plugin-template
-[docs:plugin-description]: https://plugins.jetbrains.com/docs/intellij/plugin-user-experience.html#plugin-description-and-presentation
+## Configuration
+
+### Instructor Setup
+
+Each project that uses this plugin must contain two configuration files in its
+root directory:
+
+| File | Purpose |
+|------|---------|
+| `CMakeLists.assignment_info.txt` | Identifies the course, term, and assignment |
+| `marmoset_submitter.properties` | Configures the plugin's submission behavior |
+
+A template for `marmoset_submitter.properties` is provided in the `templates/`
+directory of this repository. Copy it to your project root and fill in the
+appropriate values.
+
+---
+
+### CMake Assignment Info File
+
+Create a file named `CMakeLists.assignment_info.txt` in the root directory of
+the student's project with the following format:
+
+```cmake
+set(COURSE_NAME "CS 350")
+set(TERM "Fall")
+string(TIMESTAMP CURRENT_YEAR "%Y")
+set(SEMESTER "${TERM} ${CURRENT_YEAR}")
+set(PROJECT_NUMBER "assign01")
+set(PROJECT_NAME_STR IntArrayStack)
+```
+
+| Field | Description | Must Match Marmoset? |
+|-------|-------------|----------------------|
+| `COURSE_NAME` | The name of the course | Yes |
+| `TERM` | The academic term (`Fall`, `Spring`, or `Summer`) | Yes |
+| `PROJECT_NUMBER` | The assignment identifier | Yes |
+| `SEMESTER` | Derived from `TERM` and `CURRENT_YEAR` | — |
+| `PROJECT_NAME_STR` | The project name (used by CMake, not the plugin) | No |
+
+---
+
+### Plugin Configuration File
+
+Create a file named `marmoset_submitter.properties` in the root directory of
+the student's project. A fully commented template is available in `templates/marmoset_submitter.properties.example`.
+
+#### Required Properties
+
+| Property | Description |
+|----------|-------------|
+| `submissionUrl` | The URL of the Marmoset submission server |
+| `assignmentInfoFilename` | The name of the CMake assignment info file |
+
+#### Optional Properties
+
+| Property | Description | Default |
+|----------|-------------|---------|
+| `allowedExtensions` | Comma-separated whitelist of file extensions to include | All extensions allowed |
+| `excludedFilenames` | Comma-separated list of filenames to exclude | None |
+| `excludedDirectories` | Comma-separated list of directory names to exclude | None |
+| `excludedExtensions` | Comma-separated list of file extensions to exclude | None |
+| `zipFilenameSuffix` | Suffix appended to the project number to form the zip filename | `_submission` |
+
+#### Example
+
+```properties
+submissionUrl=https://cs.ycp.edu/marmoset/bluej/SubmitProjectViaBlueJSubmitter
+assignmentInfoFilename=CMakeLists.assignment_info.txt
+allowedExtensions=h,cpp
+excludedFilenames=.DS_Store,Flags.h,tests.cpp
+excludedDirectories=.git,.idea,.vs,.gradle,build,out,target,node_modules,cmake-build-debug
+excludedExtensions=o,d,a,iml,log,stackdump,exe,zip
+zipFilenameSuffix=_submission
+```
+
+---
+
+## Usage
+
+Once the plugin is installed and the project is configured:
+
+1. Open the student's project in your JetBrains IDE.
+2. Click the **Marmoset Submitter** button (![icon](src/main/resources/icons/MarmosetSubmit.svg)) in the main toolbar, or go to **Tools → Submit to Marmoset**.
+3. The plugin will scan and zip the project files according to the configured rules.
+4. Enter your Marmoset **username** and **password** in the login dialog. Previously saved credentials will be pre-populated automatically.
+5. The plugin will upload the zip file to the Marmoset server and display a confirmation dialog on success.
+
+### Error Messages
+
+| Error | Cause |
+|-------|-------|
+| `Missing required property '...'` | A required property is absent from `marmoset_submitter.properties` |
+| `Assignment info file not found` | The file specified by `assignmentInfoFilename` does not exist |
+| `Invalid username or password` | The credentials provided were rejected by the Marmoset server (HTTP 403) |
+| `Invalid course or assignment name` | The course name or assignment name does not match Marmoset (HTTP 404) |
+
+---
+
+## For Developers
+
+### Project Structure
+
+```
+ycpcs-marmoset-submitter/
+├── src/
+│   └── main/
+│       ├── kotlin/
+│       │   └── edu/ycp/cs/marmosetsubmitter/
+│       │       ├── actions/         # AnAction implementations
+│       │       ├── dialog/          # DialogWrapper implementations
+│       │       └── services/        # Business logic and data classes
+│       └── resources/
+│           ├── icons/               # Plugin and action icons
+│           ├── messages/            # Localization resource bundles
+│           └── META-INF/            # Plugin configuration (plugin.xml)
+├── templates/
+│   └── marmoset_submitter.properties.example
+├── build.gradle.kts
+├── gradle.properties
+└── README.md
+```
+
+### Building
+
+```
+./gradlew buildPlugin
+```
+
+### Running
+
+#### In IntelliJ IDEA
+```
+./gradlew runIde
+```
+
+This uses the version of IntelliJ IDEA specified by the `platformVersion`
+property in `gradle.properties` and requires no additional configuration.
+
+#### In CLion
+```
+./gradlew runCLion
+```
+
+Requires the `CLION_HOME` environment variable to be set to your local CLion
+installation directory:
+
+- **macOS (system-wide install):** `export CLION_HOME=/Applications/CLion.app/Contents`
+- **macOS (user-specific install):** `export CLION_HOME=~/Applications/CLion.app/Contents/`
+- **Windows:** `set CLION_HOME=C:\Program Files\JetBrains\CLion <version>`
+- **Linux:** `export CLION_HOME=/opt/clion-<version>`
+
+Alternatively, you can set `clionPath` in a `local.properties` file in the
+project root instead of using the environment variable:
+```properties
+clionPath=/Applications/CLion.app/Contents
+```
+
+### Running Tests
+
+```
+./gradlew test
+```
+
+---
+
+## License
+
+This project is licensed under the MIT License.
+
+```
+MIT License
+
+Copyright (c) 2026 jmoscola
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```

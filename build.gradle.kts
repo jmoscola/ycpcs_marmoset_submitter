@@ -1,6 +1,7 @@
 import org.jetbrains.changelog.Changelog
 import org.jetbrains.changelog.markdownToHTML
 import org.jetbrains.intellij.platform.gradle.TestFrameworkType
+import java.util.Properties
 
 plugins {
     id("java") // Java support
@@ -13,6 +14,16 @@ plugins {
 
 group = providers.gradleProperty("pluginGroup").get()
 version = providers.gradleProperty("pluginVersion").get()
+
+// Load local.properties if it exists — used for developer-specific settings
+// such as the local CLion installation path. This file is not committed to
+// source control. See local.properties.example for available settings.
+val localProperties = Properties().apply {
+    val localPropertiesFile = rootProject.file("local.properties")
+    if (localPropertiesFile.exists()) {
+        localPropertiesFile.inputStream().use { load(it) }
+    }
+}
 
 // Set the JVM language level used to build the project.
 kotlin {
@@ -155,6 +166,21 @@ intellijPlatformTesting {
 
             plugins {
                 robotServerPlugin()
+            }
+        }
+
+        // Runs the plugin in a local CLion installation for testing.
+        // Requires either the CLION_HOME environment variable or the
+        // clionPath property in local.properties to be set.
+        // See local.properties.example for details.
+        register("runCLion") {
+            useInstaller = false
+            localPath = provider {
+                file(
+                    System.getenv("CLION_HOME")
+                        ?: localProperties.getProperty("clionPath")
+                        ?: error("CLion path not set. Define CLION_HOME environment variable or set clionPath in local.properties")
+                )
             }
         }
     }
