@@ -43,27 +43,46 @@ assignmentInfoFilename=CMakeLists.assignment_info.txt
 # FILE INCLUSION RULES
 #########################################################
 
-# If set, only files with these exact names will be included
-# in the submission, regardless of extension. This is a more
-# restrictive filter than allowedExtensions. If omitted, all
-# filenames are allowed (subject to the other rules).
-# Uncommenting and setting no values results in an emptySet
-# of allowed files thus resulting in an empty zip file.
+# Comma-separated whitelist of exact filenames to include
+# in the submission zip file
 #
 # Example: allowedFilenames=main.cpp,main.h,Makefile
+#
+# When set to one or more values, only files whose names
+# appear in this list will be included, regardless of
+# their extension. This is a more restrictive filter than
+# allowedExtensions, when both are set, a file must
+# satisfy both filters to be included.
+#
+# When omitted entirely from this file, all filenames are
+# considered for inclusion, subject to the other rules.
+#
+# IMPORTANT: If this property is present but left empty
+# (i.e. allowedFilenames=), it is treated as an empty
+# set and no files will be included in the zip file,
+# resulting in an empty submission.
 #allowedFilenames=
 
-# Only files with the following extensions will be included
-# in the submission zip file. Files with extensions other
-# than those listed here will be excluded. Specify as a
-# comma-separated list without spaces or leading dots.
+# Comma-separated whitelist of file extensions to include
+# in the submission zip file, without leading dots
 #
 # Example: allowedExtensions=h,cpp
 #          allowedExtensions=java
 #          allowedExtensions=h,cpp,java
 #
-# If this property is omitted, all file extensions are
-# allowed (subject to the exclusion rules below).
+# When set to one or more values, only files whose
+# extensions appear in this list will be included. Files
+# with any other extension will be excluded regardless of
+# their location in the project.
+#
+# When omitted entirely from this file, files of all
+# extensions are considered for inclusion, subject to the
+# other exclusion rules below.
+#
+# IMPORTANT: If this property is present but left empty
+# (i.e. allowedExtensions=), it is treated as an empty
+# set and no files will be included in the zip file,
+# resulting in an empty submission.
 allowedExtensions=h,cpp
 
 
@@ -71,25 +90,38 @@ allowedExtensions=h,cpp
 # FILE EXCLUSION RULES
 #########################################################
 
-# Files with these extensions will be excluded from the
-# submission zip file. Specify as a comma-separated list
-# without spaces or leading dots.
+# Comma-separated list of file extensions to
+# unconditionally exclude from the submission zip file,
+# without leading dots
 #
 # Example: excludedExtensions=o,d,a,log,exe,zip
+#
+# Any file whose extension appears in this list will be
+# excluded regardless of its location in the project
+# directory tree. Useful for excluding build artifacts
+# and other generated files that should not be submitted.
 excludedExtensions=o,d,a,iml,log,stackdump,exe,zip,pl
 
-# Files with these names will be excluded from the
-# submission zip file. Specify as a comma-separated list.
+# Comma-separated list of exact filenames to
+# unconditionally exclude from the submission zip file
 #
 # Example: excludedFilenames=.DS_Store,Flags.h,tests.cpp
+#
+# Any file whose name appears in this list will be
+# excluded regardless of its location in the project
+# directory tree. Useful for excluding instructor-provided
+# files that students should not modify or submit.
 excludedFilenames=.DS_Store,marmoset_submitter.properties,Flags.h,tests.cpp
 
-# Directories with these names will not be recursed during
-# zip file creation. Neither the directory itself nor any
-# of its contents will be included in the submission.
-# Specify as a comma-separated list.
+# Comma-separated list of directory names to exclude from
+# the submission zip file
 #
 # Example: excludedDirectories=.git,.idea,build,out
+#
+# When a directory name appears in this list, the
+# directory will not be recursed. Neither the directory
+# itself nor any of its contents will be included in the
+# submission, regardless of the other inclusion rules.
 excludedDirectories=.git,.idea,.vs,.gradle,build,out,target,node_modules,cmake-build-debug
 
 

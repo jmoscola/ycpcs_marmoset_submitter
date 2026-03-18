@@ -1,4 +1,4 @@
-# YCPCS Marmoset Submitter
+# ![icon](src/main/resources/META-INF/pluginIcon.svg) YCPCS Marmoset Submitter
 
 <!-- Plugin description -->
 An IntelliJ Platform plugin that automates the submission of student programming
@@ -114,17 +114,19 @@ the student's project. A fully commented template is available in `templates/mar
 
 | Property | Description | Default |
 |----------|-------------|---------|
-| `allowedExtensions` | Comma-separated whitelist of file extensions to include | All extensions allowed |
-| `excludedFilenames` | Comma-separated list of filenames to exclude | None |
-| `excludedDirectories` | Comma-separated list of directory names to exclude | None |
-| `excludedExtensions` | Comma-separated list of file extensions to exclude | None |
-| `zipFilenameSuffix` | Suffix appended to the project number to form the zip filename | `_submission` |
+| `allowedFilenames` | Comma-separated whitelist of exact filenames to include in the submission zip file (e.g. `main.cpp,main.h,Makefile`). When set to one or more values, only files whose names appear in this list will be included, regardless of their extension. This is a more restrictive filter than `allowedExtensions`, when both are set, a file must satisfy both filters to be included. When omitted entirely from the properties file, all filenames are considered for inclusion, subject to the other rules. **Important:** if this property is present in the file but left empty (e.g. `allowedFilenames=`), it is treated as an empty set and no files will be included in the zip file, resulting in an empty submission. | All filenames allowed |
+| `allowedExtensions` | Comma-separated whitelist of file extensions to include in the submission zip file, without leading dots (e.g. `h,cpp`). When set to one or more values, only files whose extensions appear in this list will be included. Files with any other extension will be excluded regardless of their location in the project. When omitted entirely from the properties file, files of all extensions are considered for inclusion, subject to the other exclusion rules. **Important:** if this property is present in the file but left empty (e.g. `allowedExtensions=`), it is treated as an empty set and no files will be included in the zip file, resulting in an empty submission.                                      | All extensions allowed |
+| `excludedFilenames` | Comma-separated list of exact filenames to unconditionally exclude from the submission zip file (e.g. `.DS_Store,Flags.h,tests.cpp`). Any file whose name appears in this list will be excluded regardless of its location in the project directory tree. Useful for excluding instructor-provided files that students should not modify or submit.                                                                                                                                                                                                                                                                                                                                                                        | None |
+| `excludedDirectories` | Comma-separated list of directory names to exclude from the submission zip file (e.g. `.git,.idea,build,out`). When a directory name appears in this list, the directory will not be recursed. Neither the directory itself nor any of its contents will be included in the submission, regardless of the other inclusion rules.                                                                                                                                                                                                                                                                                                                                                                                           | None |
+| `excludedExtensions` | Comma-separated list of file extensions to unconditionally exclude from the submission zip file, without leading dots (e.g. `o,d,a,log,exe,zip`). Any file whose extension appears in this list will be excluded regardless of its location in the project directory tree. Useful for excluding build artifacts and other generated files that should not be submitted.                                                                                                                                                                                                                                                                                                                                                    | None |
+| `zipFilenameSuffix` | The suffix appended to the project number to form the zip filename. For example, a project number of `assign01` and a suffix of `_submission` produces a zip file named `assign01_submission.zip`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         | `_submission` |
 
 #### Example
 
 ```properties
 submissionUrl=https://cs.ycp.edu/marmoset/bluej/SubmitProjectViaBlueJSubmitter
 assignmentInfoFilename=CMakeLists.assignment_info.txt
+allowedFilenames=main.cpp,main.h,Makefile
 allowedExtensions=h,cpp
 excludedFilenames=.DS_Store,Flags.h,tests.cpp
 excludedDirectories=.git,.idea,.vs,.gradle,build,out,target,node_modules,cmake-build-debug
@@ -207,6 +209,9 @@ installation directory:
 - **macOS (user-specific install):** `export CLION_HOME=~/Applications/CLion.app/Contents/`
 - **Windows:** `set CLION_HOME=C:\Program Files\JetBrains\CLion <version>`
 - **Linux:** `export CLION_HOME=/opt/clion-<version>`
+
+Set the above values as environment variables.  For example, on macOS, set these 
+values in the `~/.zshrc` file.
 
 Alternatively, you can set `clionPath` in a `local.properties` file in the
 project root instead of using the environment variable:
