@@ -1,12 +1,10 @@
-package com.github.jmoscola.ycpcsmarmosetsubmitter
+package edu.ycp.cs.marmosetsubmitter
 
 import com.intellij.ide.highlighter.XmlFileType
-import com.intellij.openapi.components.service
 import com.intellij.psi.xml.XmlFile
 import com.intellij.testFramework.TestDataPath
 import com.intellij.testFramework.fixtures.BasePlatformTestCase
 import com.intellij.util.PsiErrorElementUtil
-//import com.github.jmoscola.ycpcsmarmosetsubmitter.services.MyProjectService
 
 @TestDataPath("\$CONTENT_ROOT/src/test/testData")
 class MyPluginTest : BasePlatformTestCase() {

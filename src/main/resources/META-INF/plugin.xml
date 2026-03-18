@@ -1,8 +1,8 @@
 <!-- Plugin Configuration File. Read more: https://plugins.jetbrains.com/docs/intellij/plugin-configuration-file.html -->
 <idea-plugin>
-    <id>com.github.jmoscola.ycpcsmarmosetsubmitter</id>
-    <name>ycpcs_marmoset_submitter</name>
-    <vendor>jmoscola</vendor>
+    <id>edu.ycp.cs.marmosetsubmitter</id>
+    <name>YCPCS Marmoset Submitter</name>
+    <vendor>YCPCS</vendor>
 
     <description>
         Plugin for submitting assignments to YCPCS Marmoset.
@@ -10,17 +10,17 @@
 
     <depends>com.intellij.modules.platform</depends>
 
-    <resource-bundle>messages.SubmitterBundle</resource-bundle>
+    <resource-bundle>messages.MarmosetSubmitterBundle</resource-bundle>
 
     <extensions defaultExtensionNs="com.intellij">
     </extensions>
 
     <actions>
-        <action id="com.github.jmoscola.ycpcsmarmosetsubmitter.actions.SubmitAction"
-                class="com.github.jmoscola.ycpcsmarmosetsubmitter.actions.SubmitAction"
+        <action id="edu.ycp.cs.marmosetsubmitter.actions.SubmitAction"
+                class="edu.ycp.cs.marmosetsubmitter.actions.SubmitAction"
                 text="Submit to Marmoset"
                 description="Submit assignment to Marmoset"
-                icon="/icons/ycpcs_marmoset_submitter.svg">
+                icon="/icons/MarmosetSubmit.svg">
             <add-to-group group-id="MainToolbarRight" anchor="last"/>
             <add-to-group group-id="ToolsMenu" anchor="last"/>
         </action>

@@ -1,6 +1,6 @@
-package com.github.jmoscola.ycpcsmarmosetsubmitter.services
+package edu.ycp.cs.marmosetsubmitter.services
 
-import com.github.jmoscola.ycpcsmarmosetsubmitter.SubmitterBundle
+import edu.ycp.cs.marmosetsubmitter.MarmosetSubmitterBundle
 import com.intellij.openapi.project.Project
 import java.io.File
 
@@ -83,14 +83,14 @@ class CMakeAssignmentInfoService(private val project: Project) {
     fun parse(filename: String): AssignmentInfo {
         val basePath = project.basePath
             ?: error(
-                SubmitterBundle.message("cmakeAssignmentInfoService.error.projectPathNotFound")
+                MarmosetSubmitterBundle.message("cmakeAssignmentInfoService.error.projectPathNotFound")
             )
 
         val cmakeFile = File(basePath, filename)
 
         if (!cmakeFile.exists()) {
             error(
-                SubmitterBundle.message("cmakeAssignmentInfoService.error.assignmentInfoFileNotFound", filename)
+                MarmosetSubmitterBundle.message("cmakeAssignmentInfoService.error.assignmentInfoFileNotFound", filename)
             )
         }
 
@@ -103,9 +103,9 @@ class CMakeAssignmentInfoService(private val project: Project) {
         }
 
         return AssignmentInfo(
-            courseName    = properties["COURSE_NAME"]    ?: error(SubmitterBundle.message("cmakeAssignmentInfoService.error.missingCourseName", filename)),
-            term          = properties["TERM"]           ?: error(SubmitterBundle.message("cmakeAssignmentInfoService.error.missingTerm", filename)),
-            projectNumber = properties["PROJECT_NUMBER"] ?: error(SubmitterBundle.message("cmakeAssignmentInfoService.error.missingProjectNumber", filename)),
+            courseName    = properties["COURSE_NAME"]    ?: error(MarmosetSubmitterBundle.message("cmakeAssignmentInfoService.error.missingCourseName", filename)),
+            term          = properties["TERM"]           ?: error(MarmosetSubmitterBundle.message("cmakeAssignmentInfoService.error.missingTerm", filename)),
+            projectNumber = properties["PROJECT_NUMBER"] ?: error(MarmosetSubmitterBundle.message("cmakeAssignmentInfoService.error.missingProjectNumber", filename)),
             semester      = "${properties["TERM"]} ${java.time.Year.now()}"
         )
     }

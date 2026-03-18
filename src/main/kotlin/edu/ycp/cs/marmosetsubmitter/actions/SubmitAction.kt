@@ -1,16 +1,16 @@
-package com.github.jmoscola.ycpcsmarmosetsubmitter.actions
+package edu.ycp.cs.marmosetsubmitter.actions
 
-import com.github.jmoscola.ycpcsmarmosetsubmitter.SubmitterBundle
-import com.github.jmoscola.ycpcsmarmosetsubmitter.dialog.LoginDialog
-import com.github.jmoscola.ycpcsmarmosetsubmitter.services.AssignmentInfo
-import com.github.jmoscola.ycpcsmarmosetsubmitter.services.CMakeAssignmentInfoService
-import com.github.jmoscola.ycpcsmarmosetsubmitter.services.LoginCredentialsService
-import com.github.jmoscola.ycpcsmarmosetsubmitter.services.MarmosetCredentials
-import com.github.jmoscola.ycpcsmarmosetsubmitter.services.ProjectConfig
-import com.github.jmoscola.ycpcsmarmosetsubmitter.services.SubmitterConfigService
-import com.github.jmoscola.ycpcsmarmosetsubmitter.services.UploadException
-import com.github.jmoscola.ycpcsmarmosetsubmitter.services.UploadService
-import com.github.jmoscola.ycpcsmarmosetsubmitter.services.ZipFilesService
+import edu.ycp.cs.marmosetsubmitter.MarmosetSubmitterBundle
+import edu.ycp.cs.marmosetsubmitter.dialog.LoginDialog
+import edu.ycp.cs.marmosetsubmitter.services.AssignmentInfo
+import edu.ycp.cs.marmosetsubmitter.services.CMakeAssignmentInfoService
+import edu.ycp.cs.marmosetsubmitter.services.LoginCredentialsService
+import edu.ycp.cs.marmosetsubmitter.services.MarmosetCredentials
+import edu.ycp.cs.marmosetsubmitter.services.ProjectConfig
+import edu.ycp.cs.marmosetsubmitter.services.SubmitterConfigService
+import edu.ycp.cs.marmosetsubmitter.services.UploadException
+import edu.ycp.cs.marmosetsubmitter.services.UploadService
+import edu.ycp.cs.marmosetsubmitter.services.ZipFilesService
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.progress.ProcessCanceledException
@@ -24,7 +24,7 @@ import java.io.File
  * and the Tools menu.
  *
  * The submission process consists of the following steps:
- *   1. Load and validate the project configuration (ycpcs_marmoset_submitter.properties).
+ *   1. Load and validate the project configuration (marmoset_submitter.properties).
  *   2. Parse the CMake assignment info file to retrieve course and assignment details.
  *   3. Zip the project files according to the rules specified in the configuration.
  *   4. Prompt the user for their Marmoset credentials via a login dialog.
@@ -55,7 +55,7 @@ class SubmitAction : AnAction() {
      * is required here.
      *
      * The submission workflow is as follows:
-     *   1. [loadConfig]         — Load ycpcs_marmoset_submitter.properties from the project root.
+     *   1. [loadConfig]         — Load marmoset_submitter.properties from the project root.
      *   2. [loadAssignmentInfo] — Parse the CMake assignment info file.
      *   3. [createZip]          — Zip the project files for submission.
      *   4. [getCredentials]     — Prompt the user for their Marmoset credentials.
@@ -74,7 +74,7 @@ class SubmitAction : AnAction() {
     }
 
     /**
-     * Loads and parses the plugin configuration file (ycpcs_marmoset_submitter.properties)
+     * Loads and parses the plugin configuration file (marmoset_submitter.properties)
      * from the project root directory using [SubmitterConfigService].
      *
      * @param project The current IntelliJ project.
@@ -88,11 +88,11 @@ class SubmitAction : AnAction() {
         } catch (e: Exception) {
             Messages.showErrorDialog(
                 project,
-                SubmitterBundle.message(
+                MarmosetSubmitterBundle.message(
                     "submitAction.submissionFailed",
-                    e.message ?: SubmitterBundle.message("submitAction.error.unknown")
+                    e.message ?: MarmosetSubmitterBundle.message("submitAction.error.unknown")
                 ),
-                SubmitterBundle.message("submitAction.submissionErrorDialogTitle")
+                MarmosetSubmitterBundle.message("submitAction.submissionErrorDialogTitle")
             )
             null
         }
@@ -116,11 +116,11 @@ class SubmitAction : AnAction() {
         } catch (e: Exception) {
             Messages.showErrorDialog(
                 project,
-                SubmitterBundle.message(
+                MarmosetSubmitterBundle.message(
                     "submitAction.submissionFailed",
-                    e.message ?: SubmitterBundle.message("submitAction.error.unknown")
+                    e.message ?: MarmosetSubmitterBundle.message("submitAction.error.unknown")
                 ),
-                SubmitterBundle.message("submitAction.submissionErrorDialogTitle")
+                MarmosetSubmitterBundle.message("submitAction.submissionErrorDialogTitle")
             )
             null
         }
@@ -154,8 +154,8 @@ class SubmitAction : AnAction() {
             // so an informational dialog is shown before rethrowing.
             Messages.showInfoMessage(
                 project,
-                SubmitterBundle.message("submitAction.submissionCanceled"),
-                SubmitterBundle.message("submitAction.submissionDialogTitle")
+                MarmosetSubmitterBundle.message("submitAction.submissionCanceled"),
+                MarmosetSubmitterBundle.message("submitAction.submissionDialogTitle")
             )
             throw e
         } catch (e: Exception) {
@@ -165,7 +165,7 @@ class SubmitAction : AnAction() {
             Messages.showErrorDialog(
                 project,
                 e.message,
-                SubmitterBundle.message("submitAction.submissionErrorDialogTitle")
+                MarmosetSubmitterBundle.message("submitAction.submissionErrorDialogTitle")
             )
             null
         }
@@ -187,8 +187,8 @@ class SubmitAction : AnAction() {
         if (!dialog.showAndGet()) {
             Messages.showInfoMessage(
                 project,
-                SubmitterBundle.message("submitAction.submissionCanceled"),
-                SubmitterBundle.message("submitAction.submissionDialogTitle")
+                MarmosetSubmitterBundle.message("submitAction.submissionCanceled"),
+                MarmosetSubmitterBundle.message("submitAction.submissionDialogTitle")
             )
             return null
         }
@@ -225,37 +225,37 @@ class SubmitAction : AnAction() {
             UploadService(project).upload(zipFile, credentials, assignmentInfo, config.submissionUrl)
             Messages.showInfoMessage(
                 project,
-                SubmitterBundle.message("submitAction.submissionSuccessful"),
-                SubmitterBundle.message("submitAction.submissionDialogTitle")
+                MarmosetSubmitterBundle.message("submitAction.submissionSuccessful"),
+                MarmosetSubmitterBundle.message("submitAction.submissionDialogTitle")
             )
         } catch (e: UploadException) {
             val message = when (e.responseCode) {
-                403 -> SubmitterBundle.message("submitAction.error.403", credentials.username)
-                404 -> SubmitterBundle.message(
+                403 -> MarmosetSubmitterBundle.message("submitAction.error.403", credentials.username)
+                404 -> MarmosetSubmitterBundle.message(
                     "submitAction.error.404",
                     assignmentInfo.semester,
                     assignmentInfo.courseName,
                     assignmentInfo.projectNumber
                 )
 
-                else -> e.message ?: SubmitterBundle.message("submitAction.error.unknown")
+                else -> e.message ?: MarmosetSubmitterBundle.message("submitAction.error.unknown")
             }
             Messages.showErrorDialog(
                 project,
-                SubmitterBundle.message("submitAction.submissionFailed", message),
-                SubmitterBundle.message("submitAction.submissionErrorDialogTitle")
+                MarmosetSubmitterBundle.message("submitAction.submissionFailed", message),
+                MarmosetSubmitterBundle.message("submitAction.submissionErrorDialogTitle")
             )
         } catch (e: Exception) {
             Messages.showErrorDialog(
                 project,
-                SubmitterBundle.message(
+                MarmosetSubmitterBundle.message(
                     "submitAction.submissionFailed",
-                    SubmitterBundle.message(
+                    MarmosetSubmitterBundle.message(
                         "submitAction.error.network",
-                        e.message ?: SubmitterBundle.message("submitAction.error.unknown")
+                        e.message ?: MarmosetSubmitterBundle.message("submitAction.error.unknown")
                     )
                 ),
-                SubmitterBundle.message("submitAction.submissionErrorDialogTitle")
+                MarmosetSubmitterBundle.message("submitAction.submissionErrorDialogTitle")
             )
         }
     }

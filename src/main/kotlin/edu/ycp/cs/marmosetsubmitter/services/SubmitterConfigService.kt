@@ -1,13 +1,13 @@
-package com.github.jmoscola.ycpcsmarmosetsubmitter.services
+package edu.ycp.cs.marmosetsubmitter.services
 
-import com.github.jmoscola.ycpcsmarmosetsubmitter.SubmitterBundle
+import edu.ycp.cs.marmosetsubmitter.MarmosetSubmitterBundle
 import com.intellij.openapi.project.Project
 import java.io.File
 import java.util.Properties
 
 /**
  * Data class representing the parsed contents of the plugin configuration
- * file (ycpcs_marmoset_submitter.properties). Each instance contains all
+ * file (marmoset_submitter.properties). Each instance contains all
  * settings required to control the submission workflow, including the
  * server URL, assignment info filename, zip file options, and file
  * exclusion rules.
@@ -45,7 +45,7 @@ data class ProjectConfig(
 
 /**
  * Service that loads and parses the plugin configuration file
- * (ycpcs_marmoset_submitter.properties) from the root directory of the
+ * (marmoset_submitter.properties) from the root directory of the
  * current project. The configuration file controls all aspects of the
  * submission workflow, including the server URL, file exclusion rules,
  * and zip file naming.
@@ -68,8 +68,8 @@ data class ProjectConfig(
 class SubmitterConfigService(private val project: Project) {
 
     companion object {
-        private val CONFIG_FILENAME = SubmitterBundle.message("submitterConfigService.configFilename")
-        private val DEFAULT_ZIP_FILENAME_SUFFIX = SubmitterBundle.message("submitterConfigService.defaultZipFilenameSuffix")
+        private val CONFIG_FILENAME = MarmosetSubmitterBundle.message("submitterConfigService.configFilename")
+        private val DEFAULT_ZIP_FILENAME_SUFFIX = MarmosetSubmitterBundle.message("submitterConfigService.defaultZipFilenameSuffix")
     }
 
     /**
@@ -96,12 +96,12 @@ class SubmitterConfigService(private val project: Project) {
      */
     fun load(): ProjectConfig {
         val basePath = project.basePath
-            ?: error(SubmitterBundle.message("submitterConfigService.error.projectPathNotFound"))
+            ?: error(MarmosetSubmitterBundle.message("submitterConfigService.error.projectPathNotFound"))
 
         val configFile = File(basePath, CONFIG_FILENAME)
 
         if (!configFile.exists()) {
-            error(SubmitterBundle.message("submitterConfigService.error.configFileNotFound", CONFIG_FILENAME))
+            error(MarmosetSubmitterBundle.message("submitterConfigService.error.configFileNotFound", CONFIG_FILENAME))
         }
 
         val props = Properties()
@@ -143,7 +143,7 @@ class SubmitterConfigService(private val project: Project) {
      */
     private fun Properties.require(key: String): String =
         getProperty(key) ?: error(
-            SubmitterBundle.message("submitterConfigService.error.requiredKeyNotFound",
+            MarmosetSubmitterBundle.message("submitterConfigService.error.requiredKeyNotFound",
                 key,
                 CONFIG_FILENAME
             )

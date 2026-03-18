@@ -1,0 +1,97 @@
+#########################################################
+# marmoset_submitter.properties
+#########################################################
+# Copy this file to the root directory of your project
+# and rename it to "marmoset_submitter.properties".
+# Fill in the values below to configure the
+# YCPCS Marmoset Submitter IntelliJ plugin.
+#########################################################
+
+
+#########################################################
+# REQUIRED SETTINGS
+#########################################################
+
+# The URL of the Marmoset submission server. This value
+# is provided by your instructor and should not be changed
+# unless directed to do so.
+submissionUrl=https://cs.ycp.edu/marmoset/bluej/SubmitProjectViaBlueJSubmitter
+
+# The name of the CMake assignment info file in the root
+# directory of your project. This file contains the course
+# name, term, and project number required for submission.
+# The file must follow the format shown below:
+#
+#   set(COURSE_NAME "CS 350")
+#   set(TERM "Fall")
+#   string(TIMESTAMP CURRENT_YEAR "%Y")
+#   set(SEMESTER "${TERM} ${CURRENT_YEAR}")
+#   set(PROJECT_NUMBER "assign01")
+#   set(PROJECT_NAME_STR IntArrayStack)
+#
+# Notes:
+#   - COURSE_NAME must match the course name in Marmoset exactly.
+#   - TERM must be "Fall", "Spring", or "Summer".
+#   - PROJECT_NUMBER must match the assignment name in Marmoset exactly.
+#   - SEMESTER and PROJECT_NAME_STR are not used by the plugin
+#     but are required by the CMake build system.
+#   - Values may be quoted or unquoted.
+assignmentInfoFilename=CMakeLists.assignment_info.txt
+
+
+#########################################################
+# FILE INCLUSION RULES
+#########################################################
+
+# Only files with the following extensions will be included
+# in the submission zip file. Files with extensions other
+# than those listed here will be excluded. Specify as a
+# comma-separated list without spaces or leading dots.
+#
+# Example: allowedExtensions=h,cpp
+#          allowedExtensions=java
+#          allowedExtensions=h,cpp,java
+#
+# If this property is omitted, all file extensions are
+# allowed (subject to the exclusion rules below).
+allowedExtensions=h,cpp
+
+
+#########################################################
+# FILE EXCLUSION RULES
+#########################################################
+
+# Files with these extensions will be excluded from the
+# submission zip file. Specify as a comma-separated list
+# without spaces or leading dots.
+#
+# Example: excludedExtensions=o,d,a,log,exe,zip
+excludedExtensions=o,d,a,iml,log,stackdump,exe,zip,pl
+
+# Files with these names will be excluded from the
+# submission zip file. Specify as a comma-separated list.
+#
+# Example: excludedFilenames=.DS_Store,Flags.h,tests.cpp
+excludedFilenames=.DS_Store,marmoset_submitter.properties,Flags.h,tests.cpp
+
+# Directories with these names will not be recursed during
+# zip file creation. Neither the directory itself nor any
+# of its contents will be included in the submission.
+# Specify as a comma-separated list.
+#
+# Example: excludedDirectories=.git,.idea,build,out
+excludedDirectories=.git,.idea,.vs,.gradle,build,out,target,node_modules,cmake-build-debug
+
+
+#########################################################
+# ZIP FILE SETTINGS
+#########################################################
+
+# The suffix appended to the project number to form the
+# zip filename. For example, a project number of "assign01"
+# and a suffix of "_submission" produces a zip file named
+# "assign01_submission.zip".
+#
+# This property is optional. If omitted, the suffix
+# defaults to "_submission".
+zipFilenameSuffix=_submission

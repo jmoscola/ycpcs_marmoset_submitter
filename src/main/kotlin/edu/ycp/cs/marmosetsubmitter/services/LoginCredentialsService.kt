@@ -1,6 +1,6 @@
-package com.github.jmoscola.ycpcsmarmosetsubmitter.services
+package edu.ycp.cs.marmosetsubmitter.services
 
-import com.github.jmoscola.ycpcsmarmosetsubmitter.SubmitterBundle
+import edu.ycp.cs.marmosetsubmitter.MarmosetSubmitterBundle
 import com.intellij.credentialStore.CredentialAttributes
 import com.intellij.credentialStore.Credentials
 import com.intellij.ide.passwordSafe.PasswordSafe
@@ -25,7 +25,7 @@ class LoginCredentialsService(private val project: Project) {
 
     // Create a unique key for this plugin’s storage
     private val credentialAttributes =
-        CredentialAttributes(SubmitterBundle.message("credentialAttributes.serviceName"))
+        CredentialAttributes(MarmosetSubmitterBundle.message("credentialAttributes.serviceName"))
 
     /**
      * Securely saves the provided credentials to the IntelliJ Platform's

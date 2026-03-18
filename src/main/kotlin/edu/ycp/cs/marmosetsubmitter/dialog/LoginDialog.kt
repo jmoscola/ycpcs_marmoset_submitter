@@ -1,7 +1,6 @@
-package com.github.jmoscola.ycpcsmarmosetsubmitter.dialog
+package edu.ycp.cs.marmosetsubmitter.dialog
 
-import com.github.jmoscola.ycpcsmarmosetsubmitter.SubmitterBundle
-import com.github.jmoscola.ycpcsmarmosetsubmitter.services.LoginCredentialsService
+import edu.ycp.cs.marmosetsubmitter.MarmosetSubmitterBundle
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper
 import java.awt.Dimension
@@ -27,7 +26,7 @@ class LoginDialog(private val project: Project, username: String?, password: Str
     private val passwordField = JPasswordField()
 
     init {
-        title = SubmitterBundle.message("loginDialog.title")
+        title = MarmosetSubmitterBundle.message("loginDialog.title")
 
         // Load saved credentials from persistent storage
 //        val loginService = LoginCredentialsService(project)
@@ -80,9 +79,9 @@ class LoginDialog(private val project: Project, username: String?, password: Str
     override fun createCenterPanel(): JComponent {
         val panel = JPanel()
         panel.layout = BoxLayout(panel, BoxLayout.Y_AXIS)
-        panel.add(JLabel(SubmitterBundle.message("loginDialog.username")))
+        panel.add(JLabel(MarmosetSubmitterBundle.message("loginDialog.username")))
         panel.add(usernameField)
-        panel.add(JLabel(SubmitterBundle.message("loginDialog.password")))
+        panel.add(JLabel(MarmosetSubmitterBundle.message("loginDialog.password")))
         panel.add(passwordField)
         return panel
     }
