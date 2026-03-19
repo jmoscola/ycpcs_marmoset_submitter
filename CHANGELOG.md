@@ -1,4 +1,4 @@
-<!-- Keep a Changelog guide -> https://keepachangelog.com -->
+<!-- Keep a Changelog guide: https://keepachangelog.com -->
 
 # ycpcs_marmoset_submitter Changelog
 
