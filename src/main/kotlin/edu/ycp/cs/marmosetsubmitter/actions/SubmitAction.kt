@@ -102,17 +102,23 @@ class SubmitAction : AnAction() {
      * Locates and parses the CMake assignment info file specified in the
      * project configuration using [CMakeAssignmentInfoService]. The assignment
      * info file contains the course name, term, and project number required
-     * for submission.
+     * for submission. The submission year is either read from the assignment
+     * info file or determined from the current system year, depending on the
+     * [ProjectConfig.useAssignmentInfoYear] setting.
      *
      * @param project The current IntelliJ project.
-     * @param config  The project configuration containing the assignment info filename.
-     * @return An [AssignmentInfo] containing the parsed course name, term, project
-     *         number, and semester, or null if the file is missing or a required
-     *         field is absent.
+     * @param config  The project configuration containing the assignment info
+     *                filename and the useAssignmentInfoYear flag.
+     * @return An [AssignmentInfo] containing the parsed course name, term,
+     *         project number, and semester, or null if the file is missing
+     *         or a required field is absent.
      */
     private fun loadAssignmentInfo(project: Project, config: ProjectConfig): AssignmentInfo? {
         return try {
-            CMakeAssignmentInfoService(project).parse(config.assignmentInfoFilename)
+            CMakeAssignmentInfoService(project).parse(
+                config.assignmentInfoFilename,
+                config.useAssignmentInfoYear
+            )
         } catch (e: Exception) {
             Messages.showErrorDialog(
                 project,

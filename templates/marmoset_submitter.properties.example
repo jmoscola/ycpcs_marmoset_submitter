@@ -126,7 +126,7 @@ excludedDirectories=.git,.idea,.vs,.gradle,build,out,target,node_modules,cmake-b
 
 
 #########################################################
-# ZIP FILE SETTINGS
+# OTHER SETTINGS
 #########################################################
 
 # The suffix appended to the project number to form the
@@ -137,3 +137,17 @@ excludedDirectories=.git,.idea,.vs,.gradle,build,out,target,node_modules,cmake-b
 # This property is optional. If omitted, the suffix
 # defaults to "_submission".
 zipFilenameSuffix=_submission
+
+# Specifies whether the submission year should be read from the
+# CMakeLists.assignment_info.txt file or determined automatically
+# from the current system year.
+#
+# Set to 'true' to read the year from the assignment info file.
+# In this case, the assignment info file must contain a line like:
+#   set(YEAR "2026")
+#
+# Set to 'false' (or omit entirely) to use the current system year
+# automatically via java.time.Year.now().
+#
+# Default: false (use system year)
+useAssignmentInfoYear=false

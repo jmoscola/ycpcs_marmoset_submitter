@@ -10,7 +10,7 @@ class CMakeAssignmentInfoServiceTest : BasePlatformTestCase() {
     override fun setUp() {
         super.setUp()
         projectDir = File(project.basePath!!)
-        projectDir.mkdirs() // ensure the directory exists on disk
+        projectDir.mkdirs()
     }
 
     private fun writeCMakeFile(filename: String, content: String) {
@@ -90,6 +90,104 @@ class CMakeAssignmentInfoServiceTest : BasePlatformTestCase() {
         assertEquals("CS 350",   info.courseName)
         assertEquals("Fall",     info.term)
         assertEquals("assign01", info.projectNumber)
+    }
+
+    // ── useAssignmentInfoYear = false (default) ──────────────────────────────
+
+    fun testParseUsesSystemYearByDefault() {
+        writeCMakeFile("CMakeLists.assignment_info.txt", """
+            set(COURSE_NAME "CS 350")
+            set(TERM "Fall")
+            set(PROJECT_NUMBER "assign01")
+        """.trimIndent())
+
+        val info = CMakeAssignmentInfoService(project).parse("CMakeLists.assignment_info.txt")
+        val currentYear = java.time.Year.now().toString()
+
+        assertEquals("Fall $currentYear", info.semester)
+    }
+
+    fun testParseIgnoresYearFieldWhenFlagIsFalse() {
+        writeCMakeFile("CMakeLists.assignment_info.txt", """
+            set(COURSE_NAME "CS 350")
+            set(TERM "Fall")
+            set(YEAR "2020")
+            set(PROJECT_NUMBER "assign01")
+        """.trimIndent())
+
+        val info = CMakeAssignmentInfoService(project).parse(
+            "CMakeLists.assignment_info.txt",
+            useAssignmentInfoYear = false
+        )
+        val currentYear = java.time.Year.now().toString()
+
+        assertEquals("Fall $currentYear", info.semester)
+        assertFalse(info.semester.contains("2020"))
+    }
+
+    // ── useAssignmentInfoYear = true ─────────────────────────────────────────
+
+    fun testParseReadsYearFromFileWhenFlagIsTrue() {
+        writeCMakeFile("CMakeLists.assignment_info.txt", """
+            set(COURSE_NAME "CS 350")
+            set(TERM "Fall")
+            set(YEAR "2026")
+            set(PROJECT_NUMBER "assign01")
+        """.trimIndent())
+
+        val info = CMakeAssignmentInfoService(project).parse(
+            "CMakeLists.assignment_info.txt",
+            useAssignmentInfoYear = true
+        )
+
+        assertEquals("Fall 2026", info.semester)
+    }
+
+    fun testParseThrowsWhenYearMissingAndFlagIsTrue() {
+        writeCMakeFile("CMakeLists.assignment_info.txt", """
+            set(COURSE_NAME "CS 350")
+            set(TERM "Fall")
+            set(PROJECT_NUMBER "assign01")
+        """.trimIndent())
+
+        assertThrows(IllegalStateException::class.java) {
+            CMakeAssignmentInfoService(project).parse(
+                "CMakeLists.assignment_info.txt",
+                useAssignmentInfoYear = true
+            )
+        }
+    }
+
+    fun testParseQuotedYearValue() {
+        writeCMakeFile("CMakeLists.assignment_info.txt", """
+            set(COURSE_NAME "CS 350")
+            set(TERM "Spring")
+            set(YEAR "2025")
+            set(PROJECT_NUMBER "assign02")
+        """.trimIndent())
+
+        val info = CMakeAssignmentInfoService(project).parse(
+            "CMakeLists.assignment_info.txt",
+            useAssignmentInfoYear = true
+        )
+
+        assertEquals("Spring 2025", info.semester)
+    }
+
+    fun testParseUnquotedYearValue() {
+        writeCMakeFile("CMakeLists.assignment_info.txt", """
+            set(COURSE_NAME "CS 350")
+            set(TERM "Fall")
+            set(YEAR 2026)
+            set(PROJECT_NUMBER "assign01")
+        """.trimIndent())
+
+        val info = CMakeAssignmentInfoService(project).parse(
+            "CMakeLists.assignment_info.txt",
+            useAssignmentInfoYear = true
+        )
+
+        assertEquals("Fall 2026", info.semester)
     }
 
     // ── Missing file ─────────────────────────────────────────────────────────

@@ -15,6 +15,11 @@ import java.util.Properties
  * @property submissionUrl          The URL of the Marmoset submission server. Required.
  * @property assignmentInfoFilename The name of the CMake assignment info file
  *                                  in the project root directory. Required.
+  * @property useAssignmentInfoYear If true, the submission year is read from the
+ *                                  YEAR field in the CMake assignment info file.
+ *                                  If false, the current system year is determined
+ *                                  automatically via [java.time.Year.now].
+ *                                  Defaults to false if not specified.
  * @property allowedFilenames       A whitelist of exact filenames to include in
  *                                  the submission zip file. A value of null indicates
  *                                  that all filenames are allowed. When set, only
@@ -42,6 +47,7 @@ import java.util.Properties
 data class ProjectConfig(
     val submissionUrl: String,            // required
     val assignmentInfoFilename: String,   // required
+    val useAssignmentInfoYear: Boolean,   // true = read YEAR from CMake file; false = use system year
     val allowedFilenames: Set<String>?,   // null = no restriction; if set, allow only these filenames
     val allowedExtensions: Set<String>?,  // null = allow all; emptySet = allow nothing
     val excludedFilenames: Set<String>,   // not required, can be emptySet
@@ -52,7 +58,7 @@ data class ProjectConfig(
 
 /**
  * Service that loads and parses the plugin configuration file
- * (ycpcs_marmoset_submitter.properties) from the root directory of the
+ * (marmoset_submitter.properties) from the root directory of the
  * current project. The configuration file controls all aspects of the
  * submission workflow, including the server URL, file exclusion rules,
  * and zip file naming.
@@ -67,6 +73,7 @@ data class ProjectConfig(
  * excludedDirectories=.git,.idea,build,out
  * excludedExtensions=o,d,a,iml,log,stackdump,exe,zip
  * zipFilenameSuffix=_submission
+ * useAssignmentInfoYear=false
  * ```
  *
  * @param project The current IntelliJ project, used to resolve the project
@@ -91,12 +98,13 @@ class SubmitterConfigService(private val project: Project) {
      *   - assignmentInfoFilename
      *
      * Optional properties (with defaults):
-     *   - allowedFilenames   (default: null — allow all filenames)
-     *   - allowedExtensions  (default: null — allow all extensions)
-     *   - excludedFilenames  (default: empty — exclude nothing)
-     *   - excludedDirectories (default: empty — exclude nothing)
-     *   - excludedExtensions (default: empty — exclude nothing)
-     *   - zipFilenameSuffix  (default: "_submission")
+     *   - useAssignmentInfoYear (default: false — use system year)
+     *   - allowedExtensions     (default: null — allow all extensions)
+     *   - allowedFilenames      (default: null — allow all filenames)
+     *   - excludedFilenames     (default: empty — exclude nothing)
+     *   - excludedDirectories   (default: empty — exclude nothing)
+     *   - excludedExtensions    (default: empty — exclude nothing)
+     *   - zipFilenameSuffix     (default: "_submission")
      *
      * @return A [ProjectConfig] containing the parsed configuration values.
      * @throws IllegalStateException if the project base path cannot be
@@ -119,6 +127,7 @@ class SubmitterConfigService(private val project: Project) {
         return ProjectConfig(
             submissionUrl          = props.require("submissionUrl"),
             assignmentInfoFilename = props.require("assignmentInfoFilename"),
+            useAssignmentInfoYear  = props.getProperty("useAssignmentInfoYear", "false").toBoolean(),
             allowedFilenames       = props.parseSet("allowedFilenames"),     // null = no restriction; if set, allow only these filenames
             allowedExtensions      = props.parseSet("allowedExtensions"),    // null = allow all; emptySet = allow nothing
             excludedExtensions     = props.parseSet("excludedExtensions")    ?: emptySet(),

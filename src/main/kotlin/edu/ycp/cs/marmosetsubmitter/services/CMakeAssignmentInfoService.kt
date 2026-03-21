@@ -14,7 +14,10 @@ import java.io.File
  * @property term          The academic term (e.g. "Fall").
  * @property projectNumber The assignment identifier (the name field in Marmoset) (e.g. "assign01").
  * @property semester      The full semester string derived from the term and
- *                         the current year (e.g. "Fall 2026").
+ *                         either the current system year (via [java.time.Year.now])
+ *                         or the YEAR field in the CMake assignment info file,
+ *                         depending on the value of [useAssignmentInfoYear]
+ *                         in the project configuration (e.g. "Fall 2026").
  */
 data class AssignmentInfo(
     val courseName: String,
@@ -33,6 +36,7 @@ data class AssignmentInfo(
  * ```
  * set(COURSE_NAME "CS 350")
  * set(TERM "Fall")
+ * set(YEAR "2026")   // optional — only required when useAssignmentInfoYear=true
  * set(PROJECT_NUMBER "assign01")
  * ```
  *
@@ -62,8 +66,9 @@ class CMakeAssignmentInfoService(private val project: Project) {
      * Locates and parses the specified CMake assignment info file in the
      * project root directory. Extracts the COURSE_NAME, TERM, and
      * PROJECT_NUMBER fields and returns them as an [AssignmentInfo] instance.
-     * The semester field is derived automatically from the parsed term and
-     * the current year.
+     * The semester field is derived from the parsed term and either the
+     * current system year or the YEAR field in the file, depending on the
+     * value of [useAssignmentInfoYear].
      *
      * Both quoted and unquoted CMake values are supported:
      * ```
@@ -71,16 +76,22 @@ class CMakeAssignmentInfoService(private val project: Project) {
      * set(PROJECT_NUMBER assign01) // unquoted
      * ```
      *
-     * @param filename The name of the CMake assignment info file to parse,
-     *                 relative to the project root directory.
+     * @param filename             The name of the CMake assignment info file to parse,
+     *                             relative to the project root directory.
+     * @param useAssignmentInfoYear If true, the YEAR field is read from the assignment
+     *                             info file and used to construct the semester string.
+     *                             If false, the current system year is determined
+     *                             automatically via [java.time.Year.now]. Defaults
+     *                             to false.
      * @return An [AssignmentInfo] containing the parsed course name, term,
      *         project number, and derived semester.
      * @throws IllegalStateException if the project base path cannot be
-     *         determined, if the file does not exist, or if any required
-     *         field is absent from the file. Note that Kotlin's [error]
-     *         function is used to throw this exception.
+     *         determined, if the file does not exist, if any required field
+     *         is absent from the file, or if [useAssignmentInfoYear] is true
+     *         and the YEAR field is absent from the file. Note that Kotlin's
+     *         [error] function is used to throw this exception.
      */
-    fun parse(filename: String): AssignmentInfo {
+    fun parse(filename: String, useAssignmentInfoYear: Boolean = false): AssignmentInfo {
         val basePath = project.basePath
             ?: error(
                 MarmosetSubmitterBundle.message("cmakeAssignmentInfoService.error.projectPathNotFound")
@@ -102,11 +113,18 @@ class CMakeAssignmentInfoService(private val project: Project) {
             properties[key] = value.trim()
         }
 
+        val year = if (useAssignmentInfoYear) {
+            properties["YEAR"]
+                ?: error(MarmosetSubmitterBundle.message("cmakeAssignmentInfoService.error.missingYear", filename))
+        } else {
+            java.time.Year.now().toString()
+        }
+
         return AssignmentInfo(
             courseName    = properties["COURSE_NAME"]    ?: error(MarmosetSubmitterBundle.message("cmakeAssignmentInfoService.error.missingCourseName", filename)),
             term          = properties["TERM"]           ?: error(MarmosetSubmitterBundle.message("cmakeAssignmentInfoService.error.missingTerm", filename)),
             projectNumber = properties["PROJECT_NUMBER"] ?: error(MarmosetSubmitterBundle.message("cmakeAssignmentInfoService.error.missingProjectNumber", filename)),
-            semester      = "${properties["TERM"]} ${java.time.Year.now()}"
+            semester      = "${properties["TERM"]} $year"
         )
     }
 }

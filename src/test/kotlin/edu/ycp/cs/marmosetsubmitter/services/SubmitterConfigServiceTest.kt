@@ -195,6 +195,68 @@ class SubmitterConfigServiceTest : BasePlatformTestCase() {
         assertEquals("_submit", config.zipFilenameSuffix)
     }
 
+    // ── useAssignmentInfoYear ────────────────────────────────────────────────
+
+    fun testUseAssignmentInfoYearDefaultsToFalseWhenOmitted() {
+        writeConfig("""
+            submissionUrl=https://cs.ycp.edu/marmoset/submit
+            assignmentInfoFilename=CMakeLists.assignment_info.txt
+        """.trimIndent())
+
+        val config = SubmitterConfigService(project).load()
+
+        assertFalse(config.useAssignmentInfoYear)
+    }
+
+    fun testUseAssignmentInfoYearParsedTrueCorrectly() {
+        writeConfig("""
+            submissionUrl=https://cs.ycp.edu/marmoset/submit
+            assignmentInfoFilename=CMakeLists.assignment_info.txt
+            useAssignmentInfoYear=true
+        """.trimIndent())
+
+        val config = SubmitterConfigService(project).load()
+
+        assertTrue(config.useAssignmentInfoYear)
+    }
+
+    fun testUseAssignmentInfoYearParsedFalseCorrectly() {
+        writeConfig("""
+            submissionUrl=https://cs.ycp.edu/marmoset/submit
+            assignmentInfoFilename=CMakeLists.assignment_info.txt
+            useAssignmentInfoYear=false
+        """.trimIndent())
+
+        val config = SubmitterConfigService(project).load()
+
+        assertFalse(config.useAssignmentInfoYear)
+    }
+
+    fun testUseAssignmentInfoYearCaseInsensitive() {
+        writeConfig("""
+            submissionUrl=https://cs.ycp.edu/marmoset/submit
+            assignmentInfoFilename=CMakeLists.assignment_info.txt
+            useAssignmentInfoYear=TRUE
+        """.trimIndent())
+
+        val config = SubmitterConfigService(project).load()
+
+        assertTrue(config.useAssignmentInfoYear)
+    }
+
+    fun testUseAssignmentInfoYearDefaultsToFalseForInvalidValue() {
+        writeConfig("""
+            submissionUrl=https://cs.ycp.edu/marmoset/submit
+            assignmentInfoFilename=CMakeLists.assignment_info.txt
+            useAssignmentInfoYear=yes
+        """.trimIndent())
+
+        val config = SubmitterConfigService(project).load()
+
+        // Kotlin's toBoolean() returns false for anything other than "true"
+        assertFalse(config.useAssignmentInfoYear)
+    }
+
     // ── Whitespace trimming ──────────────────────────────────────────────────
 
     fun testWhitespaceIsTrimmedFromSetValues() {

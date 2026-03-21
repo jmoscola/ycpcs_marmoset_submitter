@@ -78,10 +78,10 @@ appropriate values.
 
 Create a file named `CMakeLists.assignment_info.txt` in the root directory of
 the student's project with the following format:
-
 ```cmake
 set(COURSE_NAME "CS 350")
 set(TERM "Fall")
+set(YEAR "2026")  # optional, include when useAssignmentInfoYear=true in marmoset_submitter.properties
 string(TIMESTAMP CURRENT_YEAR "%Y")
 set(SEMESTER "${TERM} ${CURRENT_YEAR}")
 set(PROJECT_NUMBER "assign01")
@@ -92,8 +92,9 @@ set(PROJECT_NAME_STR IntArrayStack)
 |-------|-------------|----------------------|
 | `COURSE_NAME` | The name of the course | Yes |
 | `TERM` | The academic term (`Fall`, `Spring`, or `Summer`) | Yes |
+| `YEAR` | The submission year. Only required when `useAssignmentInfoYear=true` in `marmoset_submitter.properties`. When omitted or when `useAssignmentInfoYear=false`, the current system year is used automatically. | No |
 | `PROJECT_NUMBER` | The assignment identifier | Yes |
-| `SEMESTER` | Derived from `TERM` and `CURRENT_YEAR` | — |
+| `SEMESTER` | Derived from `TERM` and `CURRENT_YEAR` (used by CMake, not the plugin) | — |
 | `PROJECT_NAME_STR` | The project name (used by CMake, not the plugin) | No |
 
 ---
@@ -120,6 +121,7 @@ the student's project. A fully commented template is available in `templates/mar
 | `excludedDirectories` | Comma-separated list of directory names to exclude from the submission zip file (e.g. `.git,.idea,build,out`). When a directory name appears in this list, the directory will not be recursed. Neither the directory itself nor any of its contents will be included in the submission, regardless of the other inclusion rules.                                                                                                                                                                                                                                                                                                                                                                                           | None |
 | `excludedExtensions` | Comma-separated list of file extensions to unconditionally exclude from the submission zip file, without leading dots (e.g. `o,d,a,log,exe,zip`). Any file whose extension appears in this list will be excluded regardless of its location in the project directory tree. Useful for excluding build artifacts and other generated files that should not be submitted.                                                                                                                                                                                                                                                                                                                                                    | None |
 | `zipFilenameSuffix` | The suffix appended to the project number to form the zip filename. For example, a project number of `assign01` and a suffix of `_submission` produces a zip file named `assign01_submission.zip`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         | `_submission` |
+| `useAssignmentInfoYear` | Specifies whether the submission year should be read from the `YEAR` field in the CMake assignment info file (`true`) or determined automatically from the current system year via `java.time.Year.now()` (`false`). When set to `true`, the `YEAR` field must be present in the CMake assignment info file. **Note:** only the exact value `true` (case-insensitive) is treated as true — any other value including `yes` or `1` defaults to `false`. | `false` |
 
 #### Example
 
@@ -132,6 +134,7 @@ excludedFilenames=.DS_Store,Flags.h,tests.cpp
 excludedDirectories=.git,.idea,.vs,.gradle,build,out,target,node_modules,cmake-build-debug
 excludedExtensions=o,d,a,iml,log,stackdump,exe,zip
 zipFilenameSuffix=_submission
+useAssignmentInfoYear=false
 ```
 
 ---
