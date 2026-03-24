@@ -2,7 +2,7 @@
 
 <!-- Plugin description -->
 An IntelliJ Platform plugin that automates the submission of student programming
-assignments to the [YCPCS Marmoset](https://cs.ycp.edu/marmoset) submission server.
+assignments to a Marmoset submission server.
 The plugin zips the project files according to configurable inclusion and exclusion
 rules, prompts the student for their Marmoset credentials, and uploads the submission
 directly from within the IDE.
