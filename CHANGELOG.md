@@ -4,6 +4,12 @@
 
 ## [Unreleased]
 
+## [1.1.0]
+
+### Added
+
+- Added support for IntelliJ Platform versions dating back to 2024.2 (build 242)
+
 ## [1.0.0] - 2026-03-18
 
 ### Added
