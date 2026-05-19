@@ -102,27 +102,42 @@ allowedExtensions=h,cpp
 # and other generated files that should not be submitted.
 excludedExtensions=o,d,a,iml,log,stackdump,exe,zip,pl
 
-# Comma-separated list of exact filenames to
-# unconditionally exclude from the submission zip file
+# Comma-separated list of exact filenames or wildcard patterns to
+# unconditionally exclude from the submission zip file.
 #
-# Example: excludedFilenames=.DS_Store,Flags.h,tests.cpp
+# Wildcards: use '*' to match any sequence of characters.
+# Examples:
+#   .DS_Store        — excludes exactly ".DS_Store"
+#   *_output.txt     — excludes any file ending with "_output.txt"
+#   filename*.txt    — excludes any file starting with "filename" and ending with ".txt"
+#   test*            — excludes any file whose name starts with "test"
 #
-# Any file whose name appears in this list will be
-# excluded regardless of its location in the project
-# directory tree. Useful for excluding instructor-provided
-# files that students should not modify or submit.
+# List Example: excludedFilenames=.DS_Store,Flags.h,tests.cpp,*_output.txt
+#
+# Any file whose name matches any pattern in this list will be excluded
+# regardless of its location in the project directory tree.
+#
+# If omitted, no filenames are excluded.
 excludedFilenames=.DS_Store,marmoset_submitter.properties,Flags.h,tests.cpp
 
-# Comma-separated list of directory names to exclude from
-# the submission zip file
+# Comma-separated list of directory names or wildcard patterns to exclude
+# from the submission zip file.
 #
-# Example: excludedDirectories=.git,.idea,build,out
+# Wildcards: use '*' to match any sequence of characters.
+# Examples:
+#   build              — excludes exactly the "build" directory
+#   cmake-build-*      — excludes any directory starting with "cmake-build-"
+#   .vs*               — excludes any directory starting with ".vs"
 #
-# When a directory name appears in this list, the
-# directory will not be recursed. Neither the directory
-# itself nor any of its contents will be included in the
-# submission, regardless of the other inclusion rules.
-excludedDirectories=.git,.idea,.vs,.gradle,build,out,target,node_modules,cmake-build-debug
+# List Example: excludedDirectories=.git,.idea,build,cmake-build-*
+#
+# When a directory name matches any pattern in this list, the directory
+# will not be recursed. Neither the directory itself nor any of its
+# contents will be included in the submission, regardless of the
+# other inclusion rules.
+#
+# If omitted, no directories are excluded.
+excludedDirectories=.git,.idea,.vs,.gradle,build,out,target,node_modules,cmake-build-*
 
 
 #########################################################

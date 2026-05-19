@@ -59,10 +59,17 @@ class ZipFilesService(private val project: Project) {
      *                            extensions are allowed. An empty set indicates
      *                            that no files will be included.
      * @param excludedExtensions  A set of file extensions to exclude from the zip file.
-     * @param excludedFilenames   A set of filenames to exclude from the zip file.
-     * @param excludedDirectories A set of directory names to exclude from the zip
-     *                            file. Neither the directory nor any of its contents
-     *                            will be included.
+     * @param excludedFilenames   A set of exact filenames or wildcard patterns to
+     *                            exclude from the zip file. Use '*' as a wildcard
+     *                            to match any sequence of characters (e.g.
+     *                            "*_output.txt" excludes all files ending with
+     *                            "_output.txt").
+     * @param excludedDirectories A set of exact directory names or wildcard patterns
+     *                            to exclude from the zip file. Use '*' as a wildcard
+     *                            to match any sequence of characters (e.g.
+     *                            "cmake-build-*" excludes all directories starting
+     *                            with "cmake-build-"). Neither the matching directory
+     *                            nor any of its contents will be included.
      * @return A [File] reference to the created zip file.
      * @throws ProcessCanceledException if the user clicks the cancel button
      *                                  in the progress dialog.
@@ -102,10 +109,10 @@ class ZipFilesService(private val project: Project) {
                 val filesToZip = baseDir.walkTopDown()
                     .onEnter { dir ->
                         ProgressManager.checkCanceled()
-                        !excludedDirectories.contains(dir.name)
+                        !matchesAnyPattern(dir.name, excludedDirectories)
                     }
                     .filter { it.isFile }
-                    .filter { !excludedFilenames.contains(it.name) }
+                    .filter { !matchesAnyPattern(it.name, excludedFilenames) }
                     .filter { !excludedExtensions.contains(it.extension.lowercase()) }
                     .filter { allowedExtensions == null || allowedExtensions.contains(it.extension.lowercase()) }
                     .filter { allowedFilenames == null || allowedFilenames.contains(it.name) }
@@ -152,6 +159,34 @@ class ZipFilesService(private val project: Project) {
             throw ProcessCanceledException()
         }
         return zipFile
+    }
+
+    /**
+     * Returns true if the given name matches any of the patterns in the set.
+     * Patterns may contain '*' as a wildcard that matches any sequence of
+     * characters. Exact matches (no wildcard) are also supported.
+     *
+     * Examples:
+     *   matchesWildcard("test1_output.txt", setOf("*_output.txt")) returns true
+     *   matchesWildcard(".DS_Store",        setOf(".DS_Store"))    returns true
+     *   matchesWildcard("main.cpp",         setOf("*_output.txt")) returns false
+     *
+     * @param name     The filename or directory name to test.
+     * @param patterns The set of exact names or wildcard patterns to match against.
+     * @return True if the name matches any pattern in the set.
+     */
+    private fun matchesAnyPattern(name: String, patterns: Set<String>): Boolean {
+        return patterns.any { pattern ->
+            if (pattern.contains('*')) {
+                // Split on '*' and escape each part, then rejoin with '.*'
+                val regex = Regex(
+                    "^" + pattern.split("*").joinToString(".*") { Regex.escape(it) } + "$"
+                )
+                regex.matches(name)
+            } else {
+                name == pattern
+            }
+        }
     }
 
     /**

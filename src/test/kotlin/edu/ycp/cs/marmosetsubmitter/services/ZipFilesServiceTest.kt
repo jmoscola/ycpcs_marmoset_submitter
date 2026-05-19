@@ -180,6 +180,65 @@ class ZipFilesServiceTest : BasePlatformTestCase() {
         zipFile.delete()
     }
 
+    // ── Wildcard excludedFilenames ────────────────────────────────────────────────
+
+    fun testWildcardExcludedFilenamesSuffixMatch() {
+        createFile("test1_output.txt")
+        createFile("anotherTest_output.txt")
+        createFile("main.cpp")
+
+        val zipFile = ZipFilesService(project).zipProject(
+            zipFilename         = "test.zip",
+            excludedExtensions  = emptySet(),
+            excludedFilenames   = setOf("*_output.txt"),
+            excludedDirectories = emptySet()
+        )
+
+        val entries = zipEntryNames(zipFile)
+        assertFalse(entries.any { it.endsWith("test1_output.txt") })
+        assertFalse(entries.any { it.endsWith("anotherTest_output.txt") })
+        assertTrue(entries.any  { it.endsWith("main.cpp") })
+        zipFile.delete()
+    }
+
+    fun testWildcardExcludedFilenamesPrefixMatch() {
+        createFile("filename1.txt")
+        createFile("filename99.txt")
+        createFile("main.cpp")
+
+        val zipFile = ZipFilesService(project).zipProject(
+            zipFilename         = "test.zip",
+            excludedExtensions  = emptySet(),
+            excludedFilenames   = setOf("filename*.txt"),
+            excludedDirectories = emptySet()
+        )
+
+        val entries = zipEntryNames(zipFile)
+        assertFalse(entries.any { it.endsWith("filename1.txt") })
+        assertFalse(entries.any { it.endsWith("filename99.txt") })
+        assertTrue(entries.any  { it.endsWith("main.cpp") })
+        zipFile.delete()
+    }
+
+    fun testWildcardExcludedFilenamesMixedExactAndWildcard() {
+        createFile("test1_output.txt")
+        createFile(".DS_Store")
+        createFile("main.cpp")
+
+        val zipFile = ZipFilesService(project).zipProject(
+            zipFilename         = "test.zip",
+            excludedExtensions  = emptySet(),
+            excludedFilenames   = setOf(".DS_Store", "*_output.txt"),
+            excludedDirectories = emptySet()
+        )
+
+        val entries = zipEntryNames(zipFile)
+        assertFalse(entries.any { it.endsWith("test1_output.txt") })
+        assertFalse(entries.any { it.endsWith(".DS_Store") })
+        assertTrue(entries.any  { it.endsWith("main.cpp") })
+        zipFile.delete()
+    }
+
     // ── excludedExtensions ───────────────────────────────────────────────────
 
     fun testExcludedExtensionsAreExcluded() {
@@ -252,6 +311,46 @@ class ZipFilesServiceTest : BasePlatformTestCase() {
         val entries = zipEntryNames(zipFile)
         assertTrue(entries.any  { it.endsWith("main.cpp") })
         assertFalse(entries.any { it.contains("build/") })
+        zipFile.delete()
+    }
+
+    // ── Wildcard excludedDirectories ──────────────────────────────────────────────
+
+    fun testWildcardExcludedDirectoriesPrefixMatch() {
+        createFile("main.cpp")
+        createFile("cmake-build-debug/output.o")
+        createFile("cmake-build-release/output.o")
+
+        val zipFile = ZipFilesService(project).zipProject(
+            zipFilename         = "test.zip",
+            excludedExtensions  = emptySet(),
+            excludedFilenames   = emptySet(),
+            excludedDirectories = setOf("cmake-build-*")
+        )
+
+        val entries = zipEntryNames(zipFile)
+        assertTrue(entries.any  { it.endsWith("main.cpp") })
+        assertFalse(entries.any { it.contains("cmake-build-debug") })
+        assertFalse(entries.any { it.contains("cmake-build-release") })
+        zipFile.delete()
+    }
+
+    fun testWildcardExcludedDirectoriesMixedExactAndWildcard() {
+        createFile("main.cpp")
+        createFile("build/output.o")
+        createFile("cmake-build-debug/output.o")
+
+        val zipFile = ZipFilesService(project).zipProject(
+            zipFilename         = "test.zip",
+            excludedExtensions  = emptySet(),
+            excludedFilenames   = emptySet(),
+            excludedDirectories = setOf("build", "cmake-build-*")
+        )
+
+        val entries = zipEntryNames(zipFile)
+        assertTrue(entries.any  { it.endsWith("main.cpp") })
+        assertFalse(entries.any { it.contains("build/") })
+        assertFalse(entries.any { it.contains("cmake-build-debug/") })
         zipFile.delete()
     }
 
