@@ -17,7 +17,7 @@ import com.intellij.openapi.project.Project
  * plugin's resource bundle, ensuring they do not conflict with credentials
  * stored by other plugins or applications.
  *
- * @param project The current IntelliJ project.
+ * @param project The current project.
  * @see PasswordSafe
  * @see CredentialAttributes
  */

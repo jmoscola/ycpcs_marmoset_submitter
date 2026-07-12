@@ -28,18 +28,18 @@ class SubmitterConfigServiceTest : BasePlatformTestCase() {
     fun testLoadSucceedsWithAllRequiredProperties() {
         writeConfig("""
             submissionUrl=https://cs.ycp.edu/marmoset/submit
-            assignmentInfoFilename=CMakeLists.assignment_info.txt
+            assignmentInfoFilename=assignment_info.cmake
         """.trimIndent())
 
         val config = SubmitterConfigService(project).load()
 
         assertEquals("https://cs.ycp.edu/marmoset/submit", config.submissionUrl)
-        assertEquals("CMakeLists.assignment_info.txt", config.assignmentInfoFilename)
+        assertEquals("assignment_info.cmake", config.assignmentInfoFilename)
     }
 
     fun testLoadThrowsWhenSubmissionUrlMissing() {
         writeConfig("""
-            assignmentInfoFilename=CMakeLists.assignment_info.txt
+            assignmentInfoFilename=assignment_info.cmake
         """.trimIndent())
 
         assertThrows(IllegalStateException::class.java) {
@@ -63,12 +63,145 @@ class SubmitterConfigServiceTest : BasePlatformTestCase() {
         }
     }
 
+    // ── assignmentInfoFilename - Mode 1 (direct file) ────────────────────────
+
+    fun testAssignmentInfoFilenameDirectCmakeFile() {
+        writeConfig("""
+            submissionUrl=https://cs.ycp.edu/marmoset/submit
+            assignmentInfoFilename=assignment_info.cmake
+        """.trimIndent())
+
+        val config = SubmitterConfigService(project).load()
+
+        assertEquals("assignment_info.cmake", config.assignmentInfoFilename)
+    }
+
+    // ── assignmentInfoFilename - Mode 2 (mapping file) ───────────────────────
+
+    fun testAssignmentInfoFilenameAssMappingFile() {
+        writeConfig("""
+            submissionUrl=https://cs.ycp.edu/marmoset/submit
+            assignmentInfoFilename=assignment_info_mapping.cmake
+            useRunConfigurationBasedSubmissions=true
+        """.trimIndent())
+
+        val config = SubmitterConfigService(project).load()
+
+        assertEquals("assignment_info_mapping.cmake", config.assignmentInfoFilename)
+    }
+
+    // ── useRunConfigurationBasedSubmissions ──────────────────────────────────
+
+    fun testUseRunConfigurationBasedSubmissionsDefaultsToFalseWhenOmitted() {
+        writeConfig("""
+            submissionUrl=https://cs.ycp.edu/marmoset/submit
+            assignmentInfoFilename=assignment_info.cmake
+        """.trimIndent())
+
+        val config = SubmitterConfigService(project).load()
+
+        assertFalse(config.useRunConfigurationBasedSubmissions)
+    }
+
+    fun testUseRunConfigurationBasedSubmissionsParsedTrueCorrectly() {
+        writeConfig("""
+            submissionUrl=https://cs.ycp.edu/marmoset/submit
+            assignmentInfoFilename=assignment_info_mapping.cmake
+            useRunConfigurationBasedSubmissions=true
+        """.trimIndent())
+
+        val config = SubmitterConfigService(project).load()
+
+        assertTrue(config.useRunConfigurationBasedSubmissions)
+    }
+
+    fun testUseRunConfigurationBasedSubmissionsParsedFalseCorrectly() {
+        writeConfig("""
+            submissionUrl=https://cs.ycp.edu/marmoset/submit
+            assignmentInfoFilename=assignment_info.cmake
+            useRunConfigurationBasedSubmissions=false
+        """.trimIndent())
+
+        val config = SubmitterConfigService(project).load()
+
+        assertFalse(config.useRunConfigurationBasedSubmissions)
+    }
+
+    fun testUseRunConfigurationBasedSubmissionsCaseInsensitive() {
+        writeConfig("""
+            submissionUrl=https://cs.ycp.edu/marmoset/submit
+            assignmentInfoFilename=assignment_info_mapping.cmake
+            useRunConfigurationBasedSubmissions=TRUE
+        """.trimIndent())
+
+        val config = SubmitterConfigService(project).load()
+
+        assertTrue(config.useRunConfigurationBasedSubmissions)
+    }
+
+    fun testUseRunConfigurationBasedSubmissionsDefaultsToFalseForInvalidValue() {
+        writeConfig("""
+            submissionUrl=https://cs.ycp.edu/marmoset/submit
+            assignmentInfoFilename=assignment_info.cmake
+            useRunConfigurationBasedSubmissions=yes
+        """.trimIndent())
+
+        val config = SubmitterConfigService(project).load()
+
+        // Kotlin's toBoolean() returns false for anything other than "true"
+        assertFalse(config.useRunConfigurationBasedSubmissions)
+    }
+
+    fun testModeOneConfigLoadsCorrectlyWithoutRunConfigProperty() {
+        // verify that a complete Mode 1 config works with no
+        // useRunConfigurationBasedSubmissions property present
+        writeConfig("""
+            submissionUrl=https://cs.ycp.edu/marmoset/submit
+            assignmentInfoFilename=assignment_info.cmake
+            allowedExtensions=h,cpp
+            excludedFilenames=.DS_Store,Flags.h,tests.cpp
+            excludedDirectories=.git,.idea,build,out
+            excludedExtensions=o,d,a,exe,zip
+            zipFilenameSuffix=_submission
+        """.trimIndent())
+
+        val config = SubmitterConfigService(project).load()
+
+        assertFalse(config.useRunConfigurationBasedSubmissions)
+        assertEquals("assignment_info.cmake",               config.assignmentInfoFilename)
+        assertEquals(setOf("h", "cpp"),                     config.allowedExtensions)
+        assertEquals(setOf(".DS_Store", "Flags.h", "tests.cpp"), config.excludedFilenames)
+        assertEquals(setOf(".git", ".idea", "build", "out"), config.excludedDirectories)
+        assertEquals(setOf("o", "d", "a", "exe", "zip"),   config.excludedExtensions)
+        assertEquals("_submission",                          config.zipFilenameSuffix)
+    }
+
+    fun testModeTwoConfigLoadsCorrectlyWithRunConfigProperty() {
+        // verify that a complete Mode 2 config loads correctly
+        writeConfig("""
+            submissionUrl=https://cs.ycp.edu/marmoset/submit
+            assignmentInfoFilename=assignment_info_mapping.cmake
+            useRunConfigurationBasedSubmissions=true
+            excludedDirectories=.git,.idea,build,out
+            excludedExtensions=o,d,a,exe,zip
+            zipFilenameSuffix=_submission
+        """.trimIndent())
+
+        val config = SubmitterConfigService(project).load()
+
+        assertTrue(config.useRunConfigurationBasedSubmissions)
+        assertEquals("assignment_info_mapping.cmake", config.assignmentInfoFilename)
+        assertEquals(setOf(".git", ".idea", "build", "out"), config.excludedDirectories)
+        assertEquals(setOf("o", "d", "a", "exe", "zip"),   config.excludedExtensions)
+        assertEquals("_submission",                          config.zipFilenameSuffix)
+    }
+
     // ── allowedExtensions ────────────────────────────────────────────────────
 
     fun testAllowedExtensionsNullWhenOmitted() {
         writeConfig("""
             submissionUrl=https://cs.ycp.edu/marmoset/submit
-            assignmentInfoFilename=CMakeLists.assignment_info.txt
+            assignmentInfoFilename=assignment_info.cmake
         """.trimIndent())
 
         val config = SubmitterConfigService(project).load()
@@ -79,7 +212,7 @@ class SubmitterConfigServiceTest : BasePlatformTestCase() {
     fun testAllowedExtensionsParsedCorrectly() {
         writeConfig("""
             submissionUrl=https://cs.ycp.edu/marmoset/submit
-            assignmentInfoFilename=CMakeLists.assignment_info.txt
+            assignmentInfoFilename=assignment_info.cmake
             allowedExtensions=h,cpp
         """.trimIndent())
 
@@ -91,7 +224,7 @@ class SubmitterConfigServiceTest : BasePlatformTestCase() {
     fun testAllowedExtensionsEmptySetWhenPresentButUnset() {
         writeConfig("""
             submissionUrl=https://cs.ycp.edu/marmoset/submit
-            assignmentInfoFilename=CMakeLists.assignment_info.txt
+            assignmentInfoFilename=assignment_info.cmake
             allowedExtensions=
         """.trimIndent())
 
@@ -106,7 +239,7 @@ class SubmitterConfigServiceTest : BasePlatformTestCase() {
     fun testAllowedFilenamesNullWhenOmitted() {
         writeConfig("""
             submissionUrl=https://cs.ycp.edu/marmoset/submit
-            assignmentInfoFilename=CMakeLists.assignment_info.txt
+            assignmentInfoFilename=assignment_info.cmake
         """.trimIndent())
 
         val config = SubmitterConfigService(project).load()
@@ -117,7 +250,7 @@ class SubmitterConfigServiceTest : BasePlatformTestCase() {
     fun testAllowedFilenamesParsedCorrectly() {
         writeConfig("""
             submissionUrl=https://cs.ycp.edu/marmoset/submit
-            assignmentInfoFilename=CMakeLists.assignment_info.txt
+            assignmentInfoFilename=assignment_info.cmake
             allowedFilenames=main.cpp,main.h,Makefile
         """.trimIndent())
 
@@ -129,7 +262,7 @@ class SubmitterConfigServiceTest : BasePlatformTestCase() {
     fun testAllowedFilenamesEmptySetWhenPresentButUnset() {
         writeConfig("""
             submissionUrl=https://cs.ycp.edu/marmoset/submit
-            assignmentInfoFilename=CMakeLists.assignment_info.txt
+            assignmentInfoFilename=assignment_info.cmake
             allowedFilenames=
         """.trimIndent())
 
@@ -144,7 +277,7 @@ class SubmitterConfigServiceTest : BasePlatformTestCase() {
     fun testExclusionSetsDefaultToEmptySetWhenOmitted() {
         writeConfig("""
             submissionUrl=https://cs.ycp.edu/marmoset/submit
-            assignmentInfoFilename=CMakeLists.assignment_info.txt
+            assignmentInfoFilename=assignment_info.cmake
         """.trimIndent())
 
         val config = SubmitterConfigService(project).load()
@@ -157,7 +290,7 @@ class SubmitterConfigServiceTest : BasePlatformTestCase() {
     fun testExclusionSetsParsedCorrectly() {
         writeConfig("""
             submissionUrl=https://cs.ycp.edu/marmoset/submit
-            assignmentInfoFilename=CMakeLists.assignment_info.txt
+            assignmentInfoFilename=assignment_info.cmake
             excludedFilenames=.DS_Store,Flags.h
             excludedDirectories=.git,build
             excludedExtensions=o,d,exe
@@ -175,7 +308,7 @@ class SubmitterConfigServiceTest : BasePlatformTestCase() {
     fun testZipFilenameSuffixDefaultsToSubmission() {
         writeConfig("""
             submissionUrl=https://cs.ycp.edu/marmoset/submit
-            assignmentInfoFilename=CMakeLists.assignment_info.txt
+            assignmentInfoFilename=assignment_info.cmake
         """.trimIndent())
 
         val config = SubmitterConfigService(project).load()
@@ -186,7 +319,7 @@ class SubmitterConfigServiceTest : BasePlatformTestCase() {
     fun testZipFilenameSuffixParsedCorrectly() {
         writeConfig("""
             submissionUrl=https://cs.ycp.edu/marmoset/submit
-            assignmentInfoFilename=CMakeLists.assignment_info.txt
+            assignmentInfoFilename=assignment_info.cmake
             zipFilenameSuffix=_submit
         """.trimIndent())
 
@@ -200,7 +333,7 @@ class SubmitterConfigServiceTest : BasePlatformTestCase() {
     fun testUseAssignmentInfoYearDefaultsToFalseWhenOmitted() {
         writeConfig("""
             submissionUrl=https://cs.ycp.edu/marmoset/submit
-            assignmentInfoFilename=CMakeLists.assignment_info.txt
+            assignmentInfoFilename=assignment_info.cmake
         """.trimIndent())
 
         val config = SubmitterConfigService(project).load()
@@ -211,7 +344,7 @@ class SubmitterConfigServiceTest : BasePlatformTestCase() {
     fun testUseAssignmentInfoYearParsedTrueCorrectly() {
         writeConfig("""
             submissionUrl=https://cs.ycp.edu/marmoset/submit
-            assignmentInfoFilename=CMakeLists.assignment_info.txt
+            assignmentInfoFilename=assignment_info.cmake
             useAssignmentInfoYear=true
         """.trimIndent())
 
@@ -223,7 +356,7 @@ class SubmitterConfigServiceTest : BasePlatformTestCase() {
     fun testUseAssignmentInfoYearParsedFalseCorrectly() {
         writeConfig("""
             submissionUrl=https://cs.ycp.edu/marmoset/submit
-            assignmentInfoFilename=CMakeLists.assignment_info.txt
+            assignmentInfoFilename=assignment_info.cmake
             useAssignmentInfoYear=false
         """.trimIndent())
 
@@ -235,7 +368,7 @@ class SubmitterConfigServiceTest : BasePlatformTestCase() {
     fun testUseAssignmentInfoYearCaseInsensitive() {
         writeConfig("""
             submissionUrl=https://cs.ycp.edu/marmoset/submit
-            assignmentInfoFilename=CMakeLists.assignment_info.txt
+            assignmentInfoFilename=assignment_info.cmake
             useAssignmentInfoYear=TRUE
         """.trimIndent())
 
@@ -247,7 +380,7 @@ class SubmitterConfigServiceTest : BasePlatformTestCase() {
     fun testUseAssignmentInfoYearDefaultsToFalseForInvalidValue() {
         writeConfig("""
             submissionUrl=https://cs.ycp.edu/marmoset/submit
-            assignmentInfoFilename=CMakeLists.assignment_info.txt
+            assignmentInfoFilename=assignment_info.cmake
             useAssignmentInfoYear=yes
         """.trimIndent())
 
@@ -262,7 +395,7 @@ class SubmitterConfigServiceTest : BasePlatformTestCase() {
     fun testWhitespaceIsTrimmedFromSetValues() {
         writeConfig("""
             submissionUrl=https://cs.ycp.edu/marmoset/submit
-            assignmentInfoFilename=CMakeLists.assignment_info.txt
+            assignmentInfoFilename=assignment_info.cmake
             allowedExtensions= h , cpp , java 
         """.trimIndent())
 

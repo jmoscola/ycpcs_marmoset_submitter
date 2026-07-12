@@ -4,9 +4,28 @@
 
 ## [Unreleased]
 
+### Added
+- Run Configuration based submission mode for multi-assignment CLion projects.
+  When enabled via `useRunConfigurationBasedSubmissions=true`, the plugin reads
+  the currently selected JetBrains Run Configuration name and resolves the
+  corresponding assignment info file via a new assignment info mapping file
+  (`assignment_info_mapping.cmake`). Only the files in the directory containing
+  the resolved assignment info file are zipped and submitted.
+- Support for both subdirectory style and project root style assignment info
+  mapping files, allowing flexible project structures.
+
+### Changed
+- `assignmentInfoFilename` property now serves dual purpose. In Mode 1
+  (single assignment) it specifies the assignment info file directly; in Mode 2
+  (multi-assignment) it specifies the assignment info mapping file.
+- In Mode 2, zip files are created inside the assignment subdirectory rather
+  than the project root.
+
 ## [1.2.0] - 2026-05-19
 
-- Added support wildcards in ```excludedFilenames``` and ```excludedDirectories``` properties
+### Added
+
+- Added support wildcards in `excludedFilenames` and `excludedDirectories` properties
 
 ## [1.1.0] - 2026-03-26
 

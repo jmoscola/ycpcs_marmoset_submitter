@@ -1,0 +1,12 @@
+
+############################################################
+# Mappings from:
+# Run Configuration names -> Assignment specific info files
+############################################################
+set(DonQuixote      "CS370_Assign01_Fa25/assignment_info.cmake")
+set(RollinTrain_MS1 "CS370_Assign02_Fa25/assignment_info_ms1.cmake")
+set(RollinTrain_MS2 "CS370_Assign02_Fa25/assignment_info_ms2.cmake")
+set(LimeLight_MS1   "CS370_Assign03_Fa25/assignment_info_ms1.cmake")
+set(LimeLight_MS2   "CS370_Assign03_Fa25/assignment_info_ms2.cmake")
+set(WalkingMan_MS1  "CS370_Assign04_Fa25/assignment_info_ms1.cmake")
+set(WalkingMan_MS2  "CS370_Assign04_Fa25/assignment_info_ms2.cmake")

@@ -7,7 +7,7 @@ import org.jetbrains.annotations.PropertyKey
 /**
  * Identifies the resource bundle file located at
  * messages/MarmosetSubmitterBundle.properties. The [@NonNls] annotation
- * indicates to IntelliJ that this string is not a natural language
+ * indicates that this string is not a natural language
  * string and should not be flagged for localization.
  */
 @NonNls
@@ -34,7 +34,7 @@ object MarmosetSubmitterBundle : DynamicBundle(BUNDLE) {
      *
      * The [@JvmStatic] annotation makes this method callable as a static
      * method from Java code. The [@PropertyKey] annotation enables
-     * IntelliJ to validate the key against the resource bundle at
+     * validation of the key against the resource bundle at
      * compile time and warn if the key does not exist.
      *
      * @param key    The property key to look up in MarmosetSubmitterBundle.properties.
@@ -53,9 +53,9 @@ object MarmosetSubmitterBundle : DynamicBundle(BUNDLE) {
      * lazily, such as action descriptions or tooltip text that is only
      * evaluated when displayed.
      *
-     * The [@Suppress("unused")] annotation suppresses the IntelliJ
-     * warning that this method is not currently referenced elsewhere
-     * in the plugin, as it is part of the standard bundle API and
+     * The [@Suppress("unused")] annotation suppresses the warning
+     * that this method is not currently referenced elsewhere in
+     * the plugin, as it is part of the standard bundle API and
      * may be used in the future.
      *
      * @param key    The property key to look up in MarmosetSubmitterBundle.properties.

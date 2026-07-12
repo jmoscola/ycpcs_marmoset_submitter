@@ -13,7 +13,7 @@ import javax.swing.*
  * displayed. The dialog is fixed in size at 1.5x the default width to
  * provide adequate space for the input fields.
  *
- * @param project   The current IntelliJ project.
+ * @param project   The current project.
  * @param username  The previously saved username to pre-populate in the
  *                  username field, or null if no credentials have been saved.
  * @param password  The previously saved password to pre-populate in the

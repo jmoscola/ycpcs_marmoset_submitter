@@ -17,26 +17,79 @@
 # unless directed to do so.
 submissionUrl=https://cs.ycp.edu/marmoset/bluej/SubmitProjectViaBlueJSubmitter
 
-# The name of the CMake assignment info file in the root
-# directory of your project. This file contains the course
-# name, term, and project number required for submission.
-# The file must follow the format shown below:
+# Specifies the name of the CMake file that the plugin
+# will use to determine assignment submission properties.
+# The behavior of this property depends on the value of
+# useRunConfigurationBasedSubmissions (see below).
 #
-#   set(COURSE_NAME "CS 350")
-#   set(TERM "Fall")
-#   string(TIMESTAMP CURRENT_YEAR "%Y")
-#   set(SEMESTER "${TERM} ${CURRENT_YEAR}")
-#   set(PROJECT_NUMBER "assign01")
-#   set(PROJECT_NAME_STR IntArrayStack)
+# MODE 1 -- Single assignment project
+# (useRunConfigurationBasedSubmissions=false or omitted):
 #
-# Notes:
-#   - COURSE_NAME must match the course name in Marmoset exactly.
-#   - TERM must be "Fall", "Spring", or "Summer".
-#   - PROJECT_NUMBER must match the assignment name in Marmoset exactly.
-#   - SEMESTER and PROJECT_NAME_STR are not used by the plugin
-#     but are required by the CMake build system.
-#   - Values may be quoted or unquoted.
-assignmentInfoFilename=CMakeLists.assignment_info.txt
+#   This value is the name of the assignment info file
+#   located in the project root directory. The file
+#   contains the course name, term, and project number
+#   required for submission and must follow the format
+#   shown below:
+#
+#     set(COURSE_NAME "CS 350")
+#     set(TERM "Fall")
+#     set(YEAR "2026")
+#     set(PROJECT_NUMBER "assign01")
+#     set(PROJECT_NAME IntArrayStack)
+#
+#   Notes:
+#     - COURSE_NAME must match the course name in Marmoset exactly.
+#     - TERM must be "Fall", "Spring", or "Summer".
+#     - PROJECT_NUMBER must match the assignment name in Marmoset exactly.
+#     - YEAR is optional. See useAssignmentInfoYear below.
+#     - PROJECT_NAME is not used by the plugin but is
+#       required by the CMake build system.
+#     - Values may be quoted or unquoted.
+#
+#   Example: assignmentInfoFilename=assignment_info.cmake
+#
+# MODE 2 -- Multi-assignment project with Run Configuration
+#          based submissions
+# (useRunConfigurationBasedSubmissions=true):
+#
+#   This value is the name of the assignment info mapping
+#   file located in the project root directory. The
+#   mapping file maps JetBrains Run Configuration names
+#   to their corresponding assignment info file paths
+#   using CMake set() syntax. The assignment info files
+#   referenced in the mapping may be located in
+#   subdirectories of the project root or in the project
+#   root directory itself.
+#
+#   The mapping file must follow the format shown below:
+#
+#     set(DonQuixote      "CS370_Assign01_Fa25/assignment_info.cmake")
+#     set(RollinTrain_MS1 "CS370_Assign02_Fa25/assignment_info_ms1.cmake")
+#     set(RollinTrain_MS2 "CS370_Assign02_Fa25/assignment_info_ms2.cmake")
+#     set(LimeLight       "CS370_Assign03_Fa25/assignment_info.cmake")
+#
+#   Or, if all assignment info files are in the project
+#   root directory:
+#
+#     set(DonQuixote      "assign01_info.cmake")
+#     set(RollinTrain_MS1 "assign02_info_ms1.cmake")
+#     set(RollinTrain_MS2 "assign02_info_ms2.cmake")
+#     set(LimeLight       "assign03_info.cmake")
+#
+#   Notes:
+#     - The key (e.g. DonQuixote) must exactly match the
+#       JetBrains Run Configuration name, including case.
+#     - The value is the path to the assignment info file,
+#       relative to the project root directory.
+#     - Each assignment info file must follow the same
+#       format as described in Mode 1 above.
+#     - The plugin is capable of handling multiple run
+#       configurations per assignment as demonstrated 
+#       with RollinTrain_MS1 (milestone #1) and 
+#       RollinTrain_MS2 (milestone #1).
+#
+#   Example: assignmentInfoFilename=assignment_info_mapping.cmake
+assignmentInfoFilename=assignment_info.cmake
 
 
 #########################################################
@@ -44,14 +97,14 @@ assignmentInfoFilename=CMakeLists.assignment_info.txt
 #########################################################
 
 # Comma-separated whitelist of exact filenames to include
-# in the submission zip file
+# in the submission zip file.
 #
 # Example: allowedFilenames=main.cpp,main.h,Makefile
 #
 # When set to one or more values, only files whose names
 # appear in this list will be included, regardless of
 # their extension. This is a more restrictive filter than
-# allowedExtensions, when both are set, a file must
+# allowedExtensions. When both are set, a file must
 # satisfy both filters to be included.
 #
 # When omitted entirely from this file, all filenames are
@@ -64,7 +117,7 @@ assignmentInfoFilename=CMakeLists.assignment_info.txt
 #allowedFilenames=
 
 # Comma-separated whitelist of file extensions to include
-# in the submission zip file, without leading dots
+# in the submission zip file, without leading dots.
 #
 # Example: allowedExtensions=h,cpp
 #          allowedExtensions=java
@@ -92,7 +145,7 @@ allowedExtensions=h,cpp
 
 # Comma-separated list of file extensions to
 # unconditionally exclude from the submission zip file,
-# without leading dots
+# without leading dots.
 #
 # Example: excludedExtensions=o,d,a,log,exe,zip
 #
@@ -102,39 +155,45 @@ allowedExtensions=h,cpp
 # and other generated files that should not be submitted.
 excludedExtensions=o,d,a,iml,log,stackdump,exe,zip,pl
 
-# Comma-separated list of exact filenames or wildcard patterns to
-# unconditionally exclude from the submission zip file.
+# Comma-separated list of exact filenames or wildcard
+# patterns to unconditionally exclude from the submission
+# zip file.
 #
 # Wildcards: use '*' to match any sequence of characters.
 # Examples:
-#   .DS_Store        — excludes exactly ".DS_Store"
-#   *_output.txt     — excludes any file ending with "_output.txt"
-#   filename*.txt    — excludes any file starting with "filename" and ending with ".txt"
-#   test*            — excludes any file whose name starts with "test"
+#   .DS_Store        - excludes exactly ".DS_Store"
+#   *_output.txt     - excludes any file ending with "_output.txt"
+#   filename*.txt    - excludes any file starting with "filename"
+#                      and ending with ".txt"
+#   test*            - excludes any file whose name starts with "test"
 #
 # List Example: excludedFilenames=.DS_Store,Flags.h,tests.cpp,*_output.txt
 #
-# Any file whose name matches any pattern in this list will be excluded
-# regardless of its location in the project directory tree.
+# Any file whose name matches any pattern in this list
+# will be excluded regardless of its location in the
+# project directory tree. Useful for excluding
+# instructor-provided files that students should not
+# modify or submit.
 #
 # If omitted, no filenames are excluded.
 excludedFilenames=.DS_Store,marmoset_submitter.properties,Flags.h,tests.cpp
 
-# Comma-separated list of directory names or wildcard patterns to exclude
-# from the submission zip file.
+# Comma-separated list of directory names or wildcard
+# patterns to exclude from the submission zip file.
 #
 # Wildcards: use '*' to match any sequence of characters.
 # Examples:
-#   build              — excludes exactly the "build" directory
-#   cmake-build-*      — excludes any directory starting with "cmake-build-"
-#   .vs*               — excludes any directory starting with ".vs"
+#   build              - excludes exactly the "build" directory
+#   cmake-build-*      - excludes any directory starting with "cmake-build-"
+#   .vs*               - excludes any directory starting with ".vs"
 #
 # List Example: excludedDirectories=.git,.idea,build,cmake-build-*
 #
-# When a directory name matches any pattern in this list, the directory
-# will not be recursed. Neither the directory itself nor any of its
-# contents will be included in the submission, regardless of the
-# other inclusion rules.
+# When a directory name matches any pattern in this list,
+# the directory will not be recursed. Neither the
+# directory itself nor any of its contents will be
+# included in the submission, regardless of the other
+# inclusion rules.
 #
 # If omitted, no directories are excluded.
 excludedDirectories=.git,.idea,.vs,.gradle,build,out,target,node_modules,cmake-build-*
@@ -153,16 +212,63 @@ excludedDirectories=.git,.idea,.vs,.gradle,build,out,target,node_modules,cmake-b
 # defaults to "_submission".
 zipFilenameSuffix=_submission
 
-# Specifies whether the submission year should be read from the
-# CMakeLists.assignment_info.txt file or determined automatically
-# from the current system year.
+# Specifies whether the submission year should be read
+# from the assignment info file or determined
+# automatically from the current system year.
 #
-# Set to 'true' to read the year from the assignment info file.
-# In this case, the assignment info file must contain a line like:
+# Set to 'true' to read the year from the assignment
+# info file. In this case, the assignment info file must
+# contain a line like:
 #   set(YEAR "2026")
 #
-# Set to 'false' (or omit entirely) to use the current system year
-# automatically via java.time.Year.now().
+# Set to 'false' (or omit entirely) to use the current
+# system year automatically via java.time.Year.now().
+#
+# Note: only the exact value 'true' (case-insensitive)
+# is treated as true. Any other value including 'yes'
+# or '1' defaults to 'false'.
 #
 # Default: false (use system year)
 useAssignmentInfoYear=false
+
+# Specifies whether the plugin should operate in Mode 1
+# (single assignment project) or Mode 2 (multi-assignment
+# project with Run Configuration based submissions).
+#
+# MODE 1 -- Set to 'false' or omit entirely:
+#   The assignmentInfoFilename value is treated as the
+#   name of an assignment info file located in the
+#   project root directory. The plugin zips the entire
+#   project and submits it to Marmoset. The currently
+#   selected JetBrains Run Configuration is ignored.
+#
+#   Use this mode for projects that contain a single
+#   assignment submission destination.
+#
+# MODE 2 -- Set to 'true':
+#   The assignmentInfoFilename value is treated as the
+#   name of an assignment info mapping file located in
+#   the project root directory. The mapping file maps
+#   JetBrains Run Configuration names to their
+#   corresponding assignment info file paths. The plugin
+#   reads the currently selected Run Configuration name,
+#   looks it up in the mapping file, and uses the
+#   corresponding assignment info file to determine the
+#   submission properties. Only the files in the
+#   directory containing the resolved assignment info
+#   file are zipped and submitted.
+#
+#   An error will be displayed if no Run Configuration
+#   is selected or if the selected Run Configuration
+#   name is not found in the mapping file.
+#
+#   Use this mode for projects that contain multiple
+#   assignments or milestones, each with a unique
+#   Marmoset submission destination.
+#
+# Note: only the exact value 'true' (case-insensitive)
+# is treated as true. Any other value including 'yes'
+# or '1' defaults to 'false'.
+#
+# Default: false (Mode 1 - single assignment project)
+useRunConfigurationBasedSubmissions=false

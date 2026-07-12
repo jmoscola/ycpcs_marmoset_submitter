@@ -16,7 +16,7 @@ plugins {
 group = providers.gradleProperty("pluginGroup").get()
 version = providers.gradleProperty("pluginVersion").get()
 
-// Load local.properties if it exists — used for developer-specific settings
+// Load local.properties if it exists. Used for developer-specific settings
 // such as the local CLion installation path. This file is not committed to
 // source control. See local.properties.example for available settings.
 val localProperties = Properties().apply {

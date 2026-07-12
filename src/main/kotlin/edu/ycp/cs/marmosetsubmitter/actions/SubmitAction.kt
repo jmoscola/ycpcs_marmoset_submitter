@@ -4,6 +4,8 @@ import edu.ycp.cs.marmosetsubmitter.MarmosetSubmitterBundle
 import edu.ycp.cs.marmosetsubmitter.dialog.LoginDialog
 import edu.ycp.cs.marmosetsubmitter.services.AssignmentInfo
 import edu.ycp.cs.marmosetsubmitter.services.CMakeAssignmentInfoService
+import edu.ycp.cs.marmosetsubmitter.services.AssignmentMappingService
+import edu.ycp.cs.marmosetsubmitter.services.RunConfigurationService
 import edu.ycp.cs.marmosetsubmitter.services.LoginCredentialsService
 import edu.ycp.cs.marmosetsubmitter.services.MarmosetCredentials
 import edu.ycp.cs.marmosetsubmitter.services.ProjectConfig
@@ -16,6 +18,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
+
 import java.io.File
 
 /**
@@ -55,29 +58,28 @@ class SubmitAction : AnAction() {
      * is required here.
      *
      * The submission workflow is as follows:
-     *   1. [loadConfig]         — Load marmoset_submitter.properties from the project root.
-     *   2. [loadAssignmentInfo] — Parse the CMake assignment info file.
-     *   3. [createZip]          — Zip the project files for submission.
-     *   4. [getCredentials]     — Prompt the user for their Marmoset credentials.
-     *   5. [uploadSubmission]   — Upload the zip file to the Marmoset server.
+     *   1. [loadConfig]         - Load marmoset_submitter.properties from the project root.
+     *   2. [loadAssignmentInfo] - Parse the .cmake assignment info (or mapping) file.
+     *   3. [createZip]          - Zip the project files for submission.
+     *   4. [getCredentials]     - Prompt the user for their Marmoset credentials.
+     *   5. [uploadSubmission]   - Upload the zip file to the Marmoset server.
      *
      * @param e The action event providing context, including the current project.
      */
     override fun actionPerformed(e: AnActionEvent) {
-        val project = e.project ?: return
-        val config = loadConfig(project) ?: return                  // configure the plugin
-        val assignmentInfo =
-            loadAssignmentInfo(project, config) ?: return          // extract assignment info from CMake file
-        val zipFile = createZip(project, config, assignmentInfo) ?: return   // create zip file
-        val credentials = getCredentials(project) ?: return                  // prompt user for credentials
-        uploadSubmission(project, zipFile, credentials, assignmentInfo, config)     // upload zip file
+        val project        = e.project ?: return
+        val config         = loadConfig(project) ?: return                         // configure the plugin
+        val assignmentInfo = loadAssignmentInfo(project, config) ?: return         // extract assignment info (or mapping) from .cmake file
+        val zipFile        = createZip(project, config, assignmentInfo) ?: return  // create zip file
+        val credentials    = getCredentials(project) ?: return                     // prompt user for credentials
+        uploadSubmission(project, zipFile, credentials, assignmentInfo, config)    // upload zip file
     }
 
     /**
      * Loads and parses the plugin configuration file (marmoset_submitter.properties)
      * from the project root directory using [SubmitterConfigService].
      *
-     * @param project The current IntelliJ project.
+     * @param project The current project.
      * @return A [ProjectConfig] containing the parsed configuration values, or
      *         null if the configuration file is missing or a required property
      *         is absent.
@@ -99,26 +101,127 @@ class SubmitAction : AnAction() {
     }
 
     /**
-     * Locates and parses the CMake assignment info file specified in the
-     * project configuration using [CMakeAssignmentInfoService]. The assignment
-     * info file contains the course name, term, and project number required
-     * for submission. The submission year is either read from the assignment
-     * info file or determined from the current system year, depending on the
-     * [ProjectConfig.useAssignmentInfoYear] setting.
+     * Resolves the assignment info filename and submission directory for the
+     * current submission. The resolution strategy depends on the value of
+     * [ProjectConfig.useRunConfigurationBasedSubmissions]:
      *
-     * @param project The current IntelliJ project.
-     * @param config  The project configuration containing the assignment info
-     *                filename and the useAssignmentInfoYear flag.
-     * @return An [AssignmentInfo] containing the parsed course name, term,
-     *         project number, and semester, or null if the file is missing
-     *         or a required field is absent.
+     * In Mode 1 ([ProjectConfig.useRunConfigurationBasedSubmissions] = false):
+     * Returns [ProjectConfig.assignmentInfoFilename] directly as the assignment
+     * info filename, with the project root as the submission directory. The
+     * run configuration is ignored entirely.
+     *
+     * In Mode 2 ([ProjectConfig.useRunConfigurationBasedSubmissions] = true):
+     * Reads the currently selected run configuration name, looks it up in the
+     * mapping file specified by [ProjectConfig.assignmentInfoFilename], and
+     * returns the resolved assignment info file path. The submission directory
+     * is derived from the resolved path. If the path includes a subdirectory
+     * component (e.g. "CS370_Assign01_Fa25/assignment_info.cmake"), the
+     * submission directory is that subdirectory. If the path is a filename
+     * with no subdirectory component (e.g. "assign01_info.cmake"), the
+     * submission directory is the project root.
+     *
+     * @param project The current project.
+     * @param config  The project configuration.
+     * @return A [Pair] of the resolved assignment info filename and the
+     *         resolved submission [File] directory, or null if resolution
+     *         failed (e.g. no run configuration selected in Mode 2, or
+     *         the run configuration name was not found in the mapping file).
      */
-    private fun loadAssignmentInfo(project: Project, config: ProjectConfig): AssignmentInfo? {
+    private fun resolveAssignmentInfoFilename(
+        project: Project,
+        config: ProjectConfig
+    ): Pair<String, File>? {
+
+        val projectDir = File(project.basePath!!)
+
+        if (!config.useRunConfigurationBasedSubmissions) {
+            // Mode 1 -- use assignmentInfoFilename directly; submit from project root
+            return Pair(config.assignmentInfoFilename, projectDir)
+        }
+
+        // Mode 2 -- resolve via mapping file and selected run configuration
+        val runConfigName = RunConfigurationService(project)
+            .getSelectedRunConfigurationName()
+
+        if (runConfigName == null) {
+            Messages.showErrorDialog(
+                project,
+                MarmosetSubmitterBundle.message("submitAction.error.noRunConfigSelected"),
+                MarmosetSubmitterBundle.message("submitAction.submissionErrorDialogTitle")
+            )
+            return null
+        }
+
+        return try {
+            val assignmentInfoFilename = AssignmentMappingService(project).resolve(
+                config.assignmentInfoFilename,
+                runConfigName
+            )
+            // Derive the submission directory from the resolved path.
+            // If the path includes a subdirectory component, use that subdirectory.
+            // If the path is a filename with no subdirectory component (no '/'),
+            // fall back to the project root directory.
+            val subDirectory = File(
+                projectDir,
+                assignmentInfoFilename
+                    .substringBeforeLast("/", missingDelimiterValue = "")
+                    .ifEmpty { "." }
+            )
+            Pair(assignmentInfoFilename, subDirectory)
+        } catch (e: ProcessCanceledException) {
+            throw e
+        } catch (e: Exception) {
+            Messages.showErrorDialog(
+                project,
+                MarmosetSubmitterBundle.message(
+                    "submitAction.submissionFailed",
+                    e.message ?: MarmosetSubmitterBundle.message("submitAction.error.unknown")
+                ),
+                MarmosetSubmitterBundle.message("submitAction.submissionErrorDialogTitle")
+            )
+            null
+        }
+    }
+
+    /**
+     * Resolves and parses the assignment info file for the current submission.
+     * Delegates to [resolveAssignmentInfoFilename] to determine the correct
+     * assignment info file path and submission directory based on the current
+     * mode, then delegates to [CMakeAssignmentInfoService] to parse the file.
+     *
+     * In Mode 1, parses the file specified directly by
+     * [ProjectConfig.assignmentInfoFilename] in the project root directory.
+     *
+     * In Mode 2, resolves the assignment info file path via the mapping file
+     * and the currently selected run configuration name, then parses the
+     * resolved file. The resolved file may be located in a subdirectory of
+     * the project root or in the project root itself, depending on how the
+     * mapping file is structured.
+     *
+     * @param project The current project.
+     * @param config  The project configuration containing the assignment info
+     *                filename (or mapping filename in Mode 2), the
+     *                [ProjectConfig.useRunConfigurationBasedSubmissions] flag,
+     *                and the [ProjectConfig.useAssignmentInfoYear] flag.
+     * @return An [AssignmentInfo] containing the parsed course name, term,
+     *         project number, semester, and submission directory, or null if
+     *         the file could not be resolved or parsed.
+     */
+    private fun loadAssignmentInfo(
+        project: Project,
+        config: ProjectConfig
+    ): AssignmentInfo? {
+        val (assignmentInfoFilename, submissionDir) =
+            resolveAssignmentInfoFilename(project, config) ?: return null
+
         return try {
             CMakeAssignmentInfoService(project).parse(
-                config.assignmentInfoFilename,
-                config.useAssignmentInfoYear
+                filename              = assignmentInfoFilename,
+                useAssignmentInfoYear = config.useAssignmentInfoYear,
+                submissionDir         = submissionDir
             )
+        } catch (e: ProcessCanceledException) {
+            throw e
         } catch (e: Exception) {
             Messages.showErrorDialog(
                 project,
@@ -140,13 +243,17 @@ class SubmitAction : AnAction() {
      * directories, and excluded extensions are all sourced from the project
      * configuration.
      *
-     * @param project        The current IntelliJ project.
+     * @param project        The current project.
      * @param config         The project configuration containing zip options and exclusion rules.
      * @param assignmentInfo The parsed assignment info used to construct the zip filename.
      * @return A [File] reference to the created zip file, or null if the operation
      *         failed or was canceled by the user.
      */
-    private fun createZip(project: Project, config: ProjectConfig, assignmentInfo: AssignmentInfo): File? {
+    private fun createZip(
+        project: Project,
+        config: ProjectConfig,
+        assignmentInfo: AssignmentInfo
+    ): File? {
         return try {
             ZipFilesService(project).zipProject(
                 zipFilename         = "${assignmentInfo.projectNumber}${config.zipFilenameSuffix}.zip",
@@ -154,7 +261,8 @@ class SubmitAction : AnAction() {
                 allowedExtensions   = config.allowedExtensions,
                 excludedExtensions  = config.excludedExtensions,
                 excludedFilenames   = config.excludedFilenames,
-                excludedDirectories = config.excludedDirectories
+                excludedDirectories = config.excludedDirectories,
+                submissionDir       = assignmentInfo.submissionDir
             )
         } catch (e: ProcessCanceledException) {
             // ProcessCanceledException must be rethrown so the IntelliJ platform
@@ -185,7 +293,7 @@ class SubmitAction : AnAction() {
      * as a [MarmosetCredentials] instance. Previously saved credentials are
      * pre-populated in the login dialog via [LoginCredentialsService].
      *
-     * @param project The current IntelliJ project.
+     * @param project The current project.
      * @return A [MarmosetCredentials] containing the username and password if
      *         the user confirmed the dialog, or null if the user canceled.
      */
@@ -216,7 +324,7 @@ class SubmitAction : AnAction() {
      *   - 404: Displays an invalid course or assignment name message.
      *   - Other non-2xx codes: Displays a generic upload failure message.
      *
-     * @param project        The current IntelliJ project.
+     * @param project        The current project.
      * @param zipFile        The zip file to upload.
      * @param credentials    A [MarmosetCredentials] containing the username and password.
      * @param assignmentInfo The parsed assignment info (course name, project number, semester).
@@ -233,7 +341,7 @@ class SubmitAction : AnAction() {
             UploadService(project).upload(zipFile, credentials, assignmentInfo, config.submissionUrl)
             Messages.showInfoMessage(
                 project,
-                MarmosetSubmitterBundle.message("submitAction.submissionSuccessful"),
+                MarmosetSubmitterBundle.message("submitAction.submissionSuccessful", assignmentInfo.projectNumber),
                 MarmosetSubmitterBundle.message("submitAction.submissionDialogTitle")
             )
         } catch (e: UploadException) {

@@ -21,7 +21,7 @@ import java.util.zip.ZipOutputStream
  * Files are included or excluded based on the following rules, all of
  * which are sourced from the project configuration file:
  *   - Only files with names in [allowedFilenames] are included
- *     (if null, all filenames are allowed — more restrictive than [allowedExtensions])
+ *     (if null, all filenames are allowed ... more restrictive than [allowedExtensions])
  *   - Only files with extensions in [allowedExtensions] are included
  *     (if null, all extensions are allowed)
  *   - Files with names in [excludedFilenames] are excluded
@@ -29,7 +29,7 @@ import java.util.zip.ZipOutputStream
  *   - Directories with names in [excludedDirectories] are not recursed
  *     and their contents are excluded entirely
  *
- * @param project The current IntelliJ project.
+ * @param project The current project.
  */
 class ZipFilesService(private val project: Project) {
 
@@ -70,6 +70,14 @@ class ZipFilesService(private val project: Project) {
      *                            "cmake-build-*" excludes all directories starting
      *                            with "cmake-build-"). Neither the matching directory
      *                            nor any of its contents will be included.
+     * @param submissionDir       The directory containing the files to zip and
+     *                            submit. In Mode 1 this is always the project
+     *                            root directory. In Mode 2 this is the directory
+     *                            containing the assignment info file, which may
+     *                            be a subdirectory of the project root or the
+     *                            project root itself, depending on how the
+     *                            assignment mapping file is structured. The zip
+     *                            file is created inside this directory.
      * @return A [File] reference to the created zip file.
      * @throws ProcessCanceledException if the user clicks the cancel button
      *                                  in the progress dialog.
@@ -82,12 +90,12 @@ class ZipFilesService(private val project: Project) {
         allowedExtensions: Set<String>? = null,  // null = allow all
         excludedExtensions: Set<String>,
         excludedFilenames: Set<String>,
-        excludedDirectories: Set<String>
+        excludedDirectories: Set<String>,
+        submissionDir: File                      // in mode 1 (direct submission) = project root;
+                                                 // in mode 2 (run config based submission) = directory specified in mapping file
     ): File {
-        val basePath = project.basePath ?: error(MarmosetSubmitterBundle.message("zipFilesService.error.projectPathNotFound"))
-        val baseDir = File(basePath)
-        val baseDirPath: Path = baseDir.toPath()
-        val zipFile = File(baseDir, zipFilename)
+        val baseDirPath = submissionDir.toPath()
+        val zipFile = File(submissionDir, zipFilename)
 
         // remove previous zip file if one exists
         if (zipFile.exists()) {
@@ -106,7 +114,7 @@ class ZipFilesService(private val project: Project) {
                 indicator.isIndeterminate = true
 
                 // create list of files to zip
-                val filesToZip = baseDir.walkTopDown()
+                val filesToZip = submissionDir.walkTopDown()
                     .onEnter { dir ->
                         ProgressManager.checkCanceled()
                         !matchesAnyPattern(dir.name, excludedDirectories)
@@ -124,14 +132,14 @@ class ZipFilesService(private val project: Project) {
                     ZipOutputStream(FileOutputStream(zipFile)).use { zipOut ->
                         filesToZip.forEachIndexed { index, file ->
                             ProgressManager.checkCanceled()
-                            indicator.text = MarmosetSubmitterBundle.message("zipFilesService.zippingFile", file.relativeTo(baseDir))
+                            indicator.text = MarmosetSubmitterBundle.message("zipFilesService.zippingFile", file.relativeTo(submissionDir))
                             indicator.fraction = (index + 1).toDouble() / filesToZip.size
                             addFileToZip(file, baseDirPath, zipOut)
                         }
                     }
                 } catch (e: Exception) {
                     // Don't catch ProcessCanceledException which is generated when using clicks
-                    // the cancel button — let it propagate normally so runProcessWithProgressSynchronously
+                    // the cancel button ... let it propagate normally so runProcessWithProgressSynchronously
                     // can handle cancellation and return false. ProcessCanceledException will get rethrown
                     // outside of lambda
                     if (e is ProcessCanceledException) throw e

@@ -47,6 +47,7 @@ import java.util.Properties
 data class ProjectConfig(
     val submissionUrl: String,            // required
     val assignmentInfoFilename: String,   // required
+    val useRunConfigurationBasedSubmissions: Boolean, // true = mapping file mode; false = direct file mode
     val useAssignmentInfoYear: Boolean,   // true = read YEAR from CMake file; false = use system year
     val allowedFilenames: Set<String>?,   // null = no restriction; if set, allow only these filenames
     val allowedExtensions: Set<String>?,  // null = allow all; emptySet = allow nothing
@@ -76,7 +77,7 @@ data class ProjectConfig(
  * useAssignmentInfoYear=false
  * ```
  *
- * @param project The current IntelliJ project, used to resolve the project
+ * @param project The current project, used to resolve the project
  *                root directory.
  * @see ProjectConfig
  */
@@ -98,12 +99,12 @@ class SubmitterConfigService(private val project: Project) {
      *   - assignmentInfoFilename
      *
      * Optional properties (with defaults):
-     *   - useAssignmentInfoYear (default: false — use system year)
-     *   - allowedExtensions     (default: null — allow all extensions)
-     *   - allowedFilenames      (default: null — allow all filenames)
-     *   - excludedFilenames     (default: empty — exclude nothing)
-     *   - excludedDirectories   (default: empty — exclude nothing)
-     *   - excludedExtensions    (default: empty — exclude nothing)
+     *   - useAssignmentInfoYear (default: false - use system year)
+     *   - allowedExtensions     (default: null - allow all extensions)
+     *   - allowedFilenames      (default: null - allow all filenames)
+     *   - excludedFilenames     (default: empty - exclude nothing)
+     *   - excludedDirectories   (default: empty - exclude nothing)
+     *   - excludedExtensions    (default: empty - exclude nothing)
      *   - zipFilenameSuffix     (default: "_submission")
      *
      * @return A [ProjectConfig] containing the parsed configuration values.
@@ -125,15 +126,16 @@ class SubmitterConfigService(private val project: Project) {
         configFile.inputStream().use { props.load(it) }
 
         return ProjectConfig(
-            submissionUrl          = props.require("submissionUrl"),
-            assignmentInfoFilename = props.require("assignmentInfoFilename"),
-            useAssignmentInfoYear  = props.getProperty("useAssignmentInfoYear", "false").toBoolean(),
-            allowedFilenames       = props.parseSet("allowedFilenames"),     // null = no restriction; if set, allow only these filenames
-            allowedExtensions      = props.parseSet("allowedExtensions"),    // null = allow all; emptySet = allow nothing
-            excludedExtensions     = props.parseSet("excludedExtensions")    ?: emptySet(),
-            excludedFilenames      = props.parseSet("excludedFilenames")     ?: emptySet(),
-            excludedDirectories    = props.parseSet("excludedDirectories")   ?: emptySet(),
-            zipFilenameSuffix      = props.getProperty("zipFilenameSuffix", DEFAULT_ZIP_FILENAME_SUFFIX)
+            submissionUrl                       = props.require("submissionUrl"),
+            assignmentInfoFilename              = props.require("assignmentInfoFilename"),
+            useRunConfigurationBasedSubmissions = props.getProperty("useRunConfigurationBasedSubmissions", "false").toBoolean(),
+            useAssignmentInfoYear               = props.getProperty("useAssignmentInfoYear", "false").toBoolean(),
+            allowedFilenames                    = props.parseSet("allowedFilenames"),     // null = no restriction; if set, allow only these filenames
+            allowedExtensions                   = props.parseSet("allowedExtensions"),    // null = allow all; emptySet = allow nothing
+            excludedExtensions                  = props.parseSet("excludedExtensions")    ?: emptySet(),
+            excludedFilenames                   = props.parseSet("excludedFilenames")     ?: emptySet(),
+            excludedDirectories                 = props.parseSet("excludedDirectories")   ?: emptySet(),
+            zipFilenameSuffix                   = props.getProperty("zipFilenameSuffix", DEFAULT_ZIP_FILENAME_SUFFIX)
         )
     }
 

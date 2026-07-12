@@ -21,7 +21,7 @@ import java.net.URI
  *      https://cs.ycp.edu/marmoset/bluej/SubmitProjectViaBlueJSubmitter
  * ```
  *
- * @param project The current IntelliJ project.
+ * @param project The current project.
  * @see UploadException
  */
 class UploadService(private val project: Project) {
@@ -74,14 +74,14 @@ class UploadService(private val project: Project) {
                 writer.write(CRLF)
             }
 
-            // text fields — mimics the -F key=value curl arguments
+            // text fields - mimics the -F key=value curl arguments
             writeField("campusUID",     credentials.username)
             writeField("password",      credentials.password)
             writeField("semester",      assignmentInfo.semester)
             writeField("courseName",    assignmentInfo.courseName)
             writeField("projectNumber", assignmentInfo.projectNumber)
 
-            // file field — mimics -F 'submittedFiles=@solution.zip'
+            // file field - mimics -F 'submittedFiles=@solution.zip'
             writer.write("--$BOUNDARY$CRLF")
             writer.write("Content-Disposition: form-data; name=\"submittedFiles\"; filename=\"${zipFile.name}\"$CRLF")
             writer.write("Content-Type: application/zip$CRLF")

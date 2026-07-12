@@ -1,0 +1,8 @@
+
+############################################################
+# Assignment specific info
+############################################################
+set(COURSE_NAME "CS 350")
+set(TERM "Fall")
+set(PROJECT_NUMBER "assign01")
+set(PROJECT_NAME IntArrayStack)
