@@ -4,7 +4,10 @@
 
 ## [Unreleased]
 
+## [1.3.0] - 2026-07-13
+
 ### Added
+
 - Run Configuration based submission mode for multi-assignment CLion projects.
   When enabled via `useRunConfigurationBasedSubmissions=true`, the plugin reads
   the currently selected JetBrains Run Configuration name and resolves the
@@ -15,6 +18,7 @@
   mapping files, allowing flexible project structures.
 
 ### Changed
+
 - `assignmentInfoFilename` property now serves dual purpose. In Mode 1
   (single assignment) it specifies the assignment info file directly; in Mode 2
   (multi-assignment) it specifies the assignment info mapping file.
@@ -43,7 +47,8 @@
 - Secure credential storage using the IntelliJ Platform PasswordSafe API
 - Progress dialog with cancellation support during zip file creation
 
-[Unreleased]: https://github.com/jmoscola/ycpcs_marmoset_submitter/compare/1.2.0...HEAD
+[Unreleased]: https://github.com/jmoscola/ycpcs_marmoset_submitter/compare/1.3.0...HEAD
+[1.3.0]: https://github.com/jmoscola/ycpcs_marmoset_submitter/compare/1.2.0...1.3.0
 [1.2.0]: https://github.com/jmoscola/ycpcs_marmoset_submitter/compare/1.1.0...1.2.0
 [1.1.0]: https://github.com/jmoscola/ycpcs_marmoset_submitter/compare/1.0.0...1.1.0
 [1.0.0]: https://github.com/jmoscola/ycpcs_marmoset_submitter/commits/1.0.0
