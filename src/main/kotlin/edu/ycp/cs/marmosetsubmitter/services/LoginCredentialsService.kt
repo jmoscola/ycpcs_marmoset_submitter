@@ -38,7 +38,7 @@ class LoginCredentialsService {
             credentials.username,
             credentials.password.toCharArray()
         )
-        PasswordSafe.instance.set(credentialAttributes, creds)
+        PasswordSafe.instance[credentialAttributes] = creds
     }
 
     /**
@@ -48,7 +48,7 @@ class LoginCredentialsService {
      * @return The saved username, or null if no credentials have been saved.
      */
     fun getUsername(): String? =
-        PasswordSafe.instance.get(credentialAttributes)?.userName
+        PasswordSafe.instance[credentialAttributes]?.userName
 
     /**
      * Retrieves the saved Marmoset password from the IntelliJ Platform's
@@ -57,5 +57,5 @@ class LoginCredentialsService {
      * @return The saved password, or null if no credentials have been saved.
      */
     fun getPassword(): String? =
-        PasswordSafe.instance.get(credentialAttributes)?.getPasswordAsString()
+        PasswordSafe.instance[credentialAttributes]?.getPasswordAsString()
 }
