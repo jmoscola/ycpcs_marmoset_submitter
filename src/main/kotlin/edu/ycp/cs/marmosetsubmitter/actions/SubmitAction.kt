@@ -298,7 +298,7 @@ class SubmitAction : AnAction() {
      *         the user confirmed the dialog, or null if the user canceled.
      */
     private fun getCredentials(project: Project): MarmosetCredentials? {
-        val loginService = LoginCredentialsService(project)
+        val loginService = LoginCredentialsService()
         val dialog = LoginDialog(project, loginService.getUsername(), loginService.getPassword())
         if (!dialog.showAndGet()) {
             Messages.showInfoMessage(
@@ -338,7 +338,7 @@ class SubmitAction : AnAction() {
         config: ProjectConfig
     ) {
         try {
-            UploadService(project).upload(zipFile, credentials, assignmentInfo, config.submissionUrl)
+            UploadService().upload(zipFile, credentials, assignmentInfo, config.submissionUrl)
             Messages.showInfoMessage(
                 project,
                 MarmosetSubmitterBundle.message("submitAction.submissionSuccessful", assignmentInfo.projectNumber),

@@ -4,7 +4,6 @@ import edu.ycp.cs.marmosetsubmitter.MarmosetSubmitterBundle
 import com.intellij.credentialStore.CredentialAttributes
 import com.intellij.credentialStore.Credentials
 import com.intellij.ide.passwordSafe.PasswordSafe
-import com.intellij.openapi.project.Project
 
 /**
  * Service that securely stores and retrieves Marmoset login credentials
@@ -17,11 +16,10 @@ import com.intellij.openapi.project.Project
  * plugin's resource bundle, ensuring they do not conflict with credentials
  * stored by other plugins or applications.
  *
- * @param project The current project.
  * @see PasswordSafe
  * @see CredentialAttributes
  */
-class LoginCredentialsService(private val project: Project) {
+class LoginCredentialsService {
 
     // Create a unique key for this plugin’s storage
     private val credentialAttributes =

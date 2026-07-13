@@ -1,7 +1,6 @@
 package edu.ycp.cs.marmosetsubmitter.services
 
 import edu.ycp.cs.marmosetsubmitter.MarmosetSubmitterBundle
-import com.intellij.openapi.project.Project
 import org.jetbrains.annotations.NonNls
 import java.io.File
 import java.net.HttpURLConnection
@@ -21,10 +20,9 @@ import java.net.URI
  *      https://cs.ycp.edu/marmoset/bluej/SubmitProjectViaBlueJSubmitter
  * ```
  *
- * @param project The current project.
  * @see UploadException
  */
-class UploadService(private val project: Project) {
+class UploadService {
 
     companion object {
         @NonNls private const val BOUNDARY = "----UploaderBoundary"

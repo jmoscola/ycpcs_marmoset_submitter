@@ -20,8 +20,9 @@ directly from within the IDE.
   - [Assignment Info Mapping File](#assignment-info-mapping-file)
   - [Plugin Configuration File](#plugin-configuration-file)
 - [Usage](#usage)
-  - [Mode 1 -- Single Assignment Project](#mode-1--single-assignment-project)
-  - [Mode 2 -- Multi-Assignment Project](#mode-2--multi-assignment-project)
+  - [Mode 1 -- Single Assignment Project](#mode-1----single-assignment-project)
+  - [Mode 2 -- Multi-Assignment Project](#mode-2----multi-assignment-project)
+  - [Error Messages](#error-messages) 
 - [For Developers](#for-developers)
 - [License](#license)
 
@@ -115,9 +116,9 @@ and fill in the appropriate values.
 
 > **Important:** The only filename that must match exactly is
 > `marmoset_submitter.properties`. All other filenames described in this
-> documentation — including `assignment_info.cmake`,
+> documentation -- including `assignment_info.cmake`,
 > `assignment_info_mapping.cmake`, and the milestone variants described
-> below — are conventions only. Any filename may be used as long as it
+> below -- are conventions only. Any filename may be used as long as it
 > matches the value specified in the relevant configuration file.
 
 For projects that contain multiple milestones within the same assignment,
