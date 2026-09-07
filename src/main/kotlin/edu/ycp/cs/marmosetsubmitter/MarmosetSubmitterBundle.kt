@@ -25,7 +25,7 @@ private const val BUNDLE = "messages.MarmosetSubmitterBundle"
  *
  * @see DynamicBundle
  */
-object MarmosetSubmitterBundle : DynamicBundle(BUNDLE) {
+object MarmosetSubmitterBundle : DynamicBundle(MarmosetSubmitterBundle::class.java, BUNDLE) {
 
     /**
      * Retrieves a localized string from MarmosetSubmitterBundle.properties for the
