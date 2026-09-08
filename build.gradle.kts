@@ -28,7 +28,7 @@ val localProperties = Properties().apply {
 
 // Set the JVM language level used to build the project.
 kotlin {
-    jvmToolchain(21)
+    jvmToolchain(25)
 }
 
 // Configure project's dependencies
