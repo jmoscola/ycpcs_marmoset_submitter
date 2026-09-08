@@ -6,7 +6,9 @@
 
 ## [1.3.1] - 2026-09-08
 
-Improved compatibility with future JetBrains releases -- removed deprecated API calls
+### Changed
+
+- Improved compatibility with future JetBrains releases -- removed deprecated API calls
 
 ## [1.3.0] - 2026-07-13
 
